@@ -14,6 +14,7 @@ TOOL_CLASSES = {
     "load_resource": "tools.openhands.load_resources:LoadResourceTool",
     "execute_resource": "tools.openhands.execute_resource:ExecuteResourceTool",
     "terminal": "tools.openhands.terminal:EnvironmentShellTool",
+    "execute_code": "tools.openhands.appworld:AppWorldCodeTool",
     "read_file": "tools.openhands.file_editor:ReadFileTool",
     "write_file": "tools.openhands.file_editor:WriteFileTool",
     "replace_text": "tools.openhands.file_editor:ReplaceTextTool",

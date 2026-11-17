@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "package_version": "0.1.3.post1",
+  "data_version": "0.1.0",
+  "split": "dev",
+  "downloaded_bundle_sha256": "fd9f9608c2ec71ed0ac25c3633a738b9129a318a129e31230425b9188e508250",
+  "wheel_sha256": "db77f8003982502383a50fa2974983894bd1c54f64e2fd3f7e1540d5edd037eb",
+  "official_dev_task_count": 57,
+  "tasks": [
+    {
+      "id": "68ee2c9_1",
+      "category": "文件命名与归档",
+      "reason": "检查时间条件、批量修改和文件状态",
+      "status": "packaged_not_run"
+    },
+    {
+      "id": "6c2c621_1",
+      "category": "笔记与文件应用间的导出",
+      "reason": "检查跨应用读取、文件命名和状态持久化",
+      "status": "packaged_not_run"
+    },
+    {
+      "id": "383cbac_1",
+      "category": "团队费用核对",
+      "reason": "检查记录检索、数据汇总与答案提交；AppWorld内部模拟数据",
+      "status": "packaged_not_run"
+    }
+  ],
+  "scope": "三个不同scenario的开发集任务；用于首周接入，未作为正式测试集或稳定模型比较",
+  "execution_status": "resource_preparation_only; no Docker build or new model inference",
+  "runtime": "isolated AppWorld server with execute_code; research/OpenHands dependencies unchanged"
+}

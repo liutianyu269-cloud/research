@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/xlang-ai/OSWorld",
+  "revision": "5123bfdbbc34b947bcffcff564abc62d0ab7072d",
+  "status": "source_analysis_and_task_selection_only",
+  "tasks": [
+    {
+      "id": "23393935-50c7-4a86-aeea-2b78fd089c5c",
+      "path": "evaluation_examples/examples/os/23393935-50c7-4a86-aeea-2b78fd089c5c.json",
+      "purpose": "文件整理：递归查找并复制JPG到cpjpg",
+      "native_evaluator": "check_moved_jpgs",
+      "materials": "原题config内5个HuggingFace素材URL；未下载或验证",
+      "status": "not_run"
+    },
+    {
+      "id": "0810415c-bde4-4443-9047-d5f70165a697",
+      "path": "evaluation_examples/examples/libreoffice_writer/0810415c-bde4-4443-9047-d5f70165a697.json",
+      "purpose": "办公文档：前两个段落改双倍行距",
+      "native_evaluator": "compare_line_spacing，两个参考文档按or组合",
+      "materials": "原题输入DOCX和两个原生评分参考URL；未下载或验证",
+      "status": "not_run"
+    }
+  ],
+  "interfaces": {
+    "reset": "DesktopEnv.reset(task_config)恢复快照、执行setup，返回首个观察",
+    "observe": "当前_get_obs提供screenshot、可选accessibility_tree/terminal和instruction；该方法是上游内部接口，适配时优先保留reset/step返回观察",
+    "step": "DesktopEnv.step(action,pause)返回观察、循环reward、done和info；循环reward不是最终评分",
+    "finish": "DONE/FAIL/WAIT具有上游特殊语义",
+    "evaluate": "DesktopEnv.evaluate()执行postconfig、getter与原生metric；失败和异常分开",
+    "cleanup": "DesktopEnv.close()调用provider.stop_emulator"
+  },
+  "current_gaps": [
+    "本机PATH和VMware/VirtualBox常见安装位置未找到vmrun或VBoxManage；没有据此排除其他provider",
+    "尚未准备VM镜像、初始快照与任务素材；未核对Docker/KVM路径",
+    "research现有显式工具输出以文本为主；图像观察、模型输入与recorder保存链路未接通，也未实测模型图像能力",
+    "主机shell执行不能替代原生桌面动作；不能把这些源码分析算成模型trial"
+  ],
+  "proposed_locations": [
+    "environment/osworld.py：后续管理VM与reset/step/close，不改数据集评分规则",
+    "datasets/osworld.py：后续任务准备和native evaluate→Score",
+    "tools/openhands与tools/dsh：后续接通同一环境观察/动作；图像序列需对应trace支持"
+  ],
+  "scope": "第二优先级已开展源码接入分析和两题选择；尚无可运行OSWorld适配器，不提供虚假可执行配置"
+}

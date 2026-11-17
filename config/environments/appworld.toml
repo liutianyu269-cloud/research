@@ -1,0 +1,5 @@
+[environment]
+factory = "environment.appworld:create_environment"
+startup_timeout = 1800
+ready_timeout = 60
+cleanup_timeout = 180

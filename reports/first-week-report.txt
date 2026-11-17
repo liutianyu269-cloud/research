@@ -1,0 +1,181 @@
+# 首周任务交付与第三次提交
+
+更新：2026-11-18。负责人：刘添予。方向二：从 Git 仓库生成可复用 Skill。
+
+本次第三次提交按首周任务执行。依据飞书“首周任务安排”、老师单独安排的 SkillGenBench 接入，以及用户追加的 AppWorld 优先、OSWorld-Verified 第二优先接入要求。实验事实与待验收目标分别记录，不把代码写好视为运行成功。
+
+来源：https://ncnycyb19m6m.feishu.cn/wiki/JhzcwmAtzigv62ktkvFcKrKjnMg
+个人分支：https://github.com/liutianyu269-cloud/research/tree/codex/liutianyu-skillgenbench
+
+## 1. 首周四项交付与当前状态
+
+| 首周交付 | 已有成果 | 尚未完成 |
+|---|---|---|
+| 框架流程说明 | 第2节说明真实入口、四份配置、执行位置与记录位置；SkillsBench 示例资源此前已准备 | 本人仍需按步骤阅读和解释；助手代读不等于本人已掌握 |
+| 主数据集分析 | 第3节回答 GitTaskBench 六问并给两个真实样例；SkillGenBench 已有个人接入与补充分析 | GitTaskBench 尚无本人运行 trace，组内接入分工仍需协调 |
+| 少量预跑或明确阻塞 | SkillGenBench 保留两次实际单题执行及补评分；AppWorld 新增适配代码和3题开发集资源包 | AppWorld 尚未构建/启动容器或调用模型；OSWorld 环境未齐，未运行 |
+| 一个可复核观察 | PDF 三个参考字段值正确，但附加字段导致严格评分失败；原题字段约定不完整 | 尚无同题成功轨迹或跨 harness 对照，不作优劣结论 |
+
+本次没有生成“可复用 Skill 已有效”的研究结论。首周不要求完成自动 Skill 生成方法。完整10题×2模型×2harness×3次=120次矩阵，按文档在接入稳定后逐步开展，未计入已完成。
+
+## 2. research 主流程：一条任务怎样变成实验记录
+
+```text
+四份TOML → evaluation/__main__.py → load_config/load_run
+ → loader读资源包与选题 → prepare复制本trial资料
+ → environment.factory/start → dataset.setup
+ → harness.runner.run_agent → 模型与工具循环
+ → dataset.evaluate返回Score → environment.destroy
+ → result/summary、原生评分、产物、trace、模型用量账本
+```
+
+dataset 配置选择任务、资源包和适配函数；environment 配置选择运行环境及启动清理预算；agent 配置选择模型、凭据变量、harness、工具和 Agent 预算；evaluation 配置选择 Skill 条件、重复次数、评分函数和通过阈值。
+
+Task 是题目及来源，PreparedTask 是本次准备的副本，TrialContext 绑定任务与环境，AgentResult 记录作答过程，Score 记录奖励及数据集指标。一个 trial 是一道题、一个条件、一次独立运行；一次 trial 内可能请求模型很多次。--plan 只预览；真正运行还要准备环境、请求模型、评分并清理。
+
+本机：Windows PowerShell → WSL Ubuntu 中的 research/OpenHands → Thingo 远程模型生成决策 → 本机 Docker 执行工具代码。模型请求和本地代码执行是不同环节。
+
+原 SkillGenBench 四配置分别是 config/datasets/skillgenbench.toml、config/environments/skillgenbench.toml、config/agents/openhands-skillgenbench.toml、config/evaluation/skillgenbench.toml。新 AppWorld 使用同目录对应 appworld/openhands-appworld 文件。
+
+SkillsBench 的3d-scan-calc用于共同上手：此前完成资源包读取与任务准备，未调用模型做该示例，不计作方向二正式样本。
+
+## 3. GitTaskBench：方向二主数据集六问
+
+来源：https://github.com/QuantaAlpha/GitTaskBench/tree/df188a73013393d036442bfb0f323c4c995fa5e1
+
+1. 测什么：考察 Agent 理解并利用指定开源仓库完成实际任务的能力。官方列54题、18个仓库；已核对54份任务配置，但未逐个运行全部仓库。
+2. 输入输出：输入任务指令、仓库和配套素材，输出指定文件或结果。PyPDF2_01输入仓库与PDF，输出提取文本；Faker_01生成100条Username/Email用户CSV。
+3. 环境与接入：上游 query.json、task_info.yaml 和测试脚本采用各自格式及 /GitTaskBench 绝对路径，需转换为独立资源包和容器内路径。可复用 research 的 Docker、文件通道和评分调度；当前没有新增 GitTaskBench 适配器。
+4. 工具与 Skill：上游有仓库探索和代码执行路径，可映射现有 terminal/文件工具。所查任务没有把标准SKILL.md作为必需输入，不能把仓库README当作已经生成的Skill。未来生成时仍须隔离评分答案。
+5. 指标：保留原生Process/Result及题目指标。PyPDF2_01去除空格换行后，文本相似度达到95%才通过；Faker_01检查100条记录、必要列、非空用户名和邮件格式。评分脚本执行成功与题目通过分别记录。
+6. 为什么失败：尚无本人运行trace。绝对路径映射、原生依赖、仓库版本和产物发现是静态风险，不能写成已发生的模型失败。
+
+两个真实样例已读原题、配置和原生测试，不是自行编造：
+
+| 样例 | 产物与验收 | 本人的状态 |
+|---|---|---|
+| PyPDF2_01 | PDF转文本，与gt.txt做SequenceMatcher相似度检查，阈值95% | 源码分析，未运行 |
+| Faker_01 | 100条Username/Email用户CSV，检查结构、数量和字段有效性 | 源码分析，未运行 |
+
+公开性核对：已取得README、loader/evaluator、两个样例的query/config/test及完整树清单；未校验全部素材、模型权重或许可证，不声称54题均可运行。所查样例没有现成标准Skill，后续可复用来源是仓库文档、示例和代码，尚未生成Skill。
+
+具体接入缺口：建议后续由 datasets/gittaskbench.py 解释 query/config、映射原生评分，tools/prepare_gittaskbench.py 整理素材与仓库快照；环境继续复用 DockerEnvironment。上游全量环境包含Python3.10及部分GPU依赖，不能直接整套装进research的Python3.12环境；需逐题核对，不在首周盲装全部依赖。
+
+## 4. SkillGenBench：个人接入成果和真实基线
+
+固定版本：https://github.com/QuantaAlpha/SkillGenBench/tree/5a8bd61d8191e34fa1bbbffbff7f70db1d2a027d
+
+该基准组织从仓库/文档生成Skill并用于下游任务的评测。官方187题中，code_repo为123题、code_doc为28题、domain为36题。本机适配目前明确只支持PyPDF2_gtb03、no-skill；没有完整187题接入或自动Skill生成成果。
+
+本题读取PDF元数据并生成pdf_metadata.json。复用research原调度、Docker环境、OpenHands、原生grader、trace和llm账本。新增适配整理标准资源包，隔离作答材料与评分资料，并在任务副本修复CRLF换行，未修改原始题目、参考或评分规则。
+
+| 记录 | 通过/有效评分/计划 | 输入/输出token | Agent/总用时秒 | 账本估算CNY |
+|---|---|---|---|---|
+| liutianyu-skillgenbench-first，旧版实际执行 | 0/0/1，原评分基础设施失败 | 177497/12130 | 121.861/140.764 | 0.14187380 |
+| first原产物补评 | 0/1/1份既有产物，不新增Agent trial | 无新模型调用 | 只补评分 | 无新模型费用 |
+| liutianyu-week3-package-01，新版完整预跑 | 0/1/1，通过率0% | 160420/7655 | 98.532/118.515 | 0.04769834 |
+
+模型deepseek/deepseek-flash，Thingo网关，OpenHands1.53.0，terminal/think/finish，15轮、300秒。新版status=completed、reward=0、passed=false、errors为空。合法零分与旧版缺失评分分别记录。
+
+两次实际执行共30次模型请求，账本估算合计0.18957214元，非平台实扣证明。SDK total_tokens为空，未填成0；缓存读取是输入计价类别，reasoning是输出子集，不重复相加。项目编号仍是临时liutianyu-skillgenbench-pilot。
+
+另一个真实样例Faker_gtb01：题面写50条五列，原生测试却要求100条Username/Email，属于静态发现的规格冲突，未运行，也未当作模型失败。GitTaskBench的Faker_01原题与评分在这一点上相符。
+
+## 5. 可复核观察与至少五类问题
+
+核心观察：新版B#5已经读到PDF元数据，B#10写出JSON。三个参考字段CreationDate、Author、Title都存在且值相同，但生成结果有16个顶层键；原生测试严格比较键集合，额外13键导致0分。因此“完全没有读出PDF内容”不符合现有证据。题面没有明确列完整输出schema，需报告这一歧义，保留原分数。
+
+| 类型 | 证据或状态 | 判断边界 |
+|---|---|---|
+| 输出约定与评分不一致 | 两份JSON参考字段值相同，但有额外字段；grader严格比较键集合 | 已确认直接不通过条件，不据此推断通用能力 |
+| 依赖命名 | import PyPDF2失败，已有pypdf5.5.0；新版随后安装PyPDF2 3.0.1 | 旧名与现代包名不同，模型能恢复 |
+| 网络依赖 | 旧运行pip访问TUNA发生TLS错误，改用官方PyPI后新版可安装 | 环境改变，前后两次不能当作纯模型比较 |
+| 工具反馈语义 | 旧命令内部失败，但管道/后续命令使整体退出码为0 | 应结合stdout/stderr，不直接认定harness误报 |
+| 无效探索 | 多次查找隔离的tests、logs和worker临时目录 | 耗费预算；是否调整可见信息要另做对照 |
+| 循环与停止 | 两次均到max_iterations，已有产物但没有finish | 提高预算是否改善尚未验证 |
+| 评分基础设施和基准一致性 | 旧评分脚本CRLF导致缺reward；另有Faker规格冲突 | 前者实际发生且已在副本修复，后者仅静态发现 |
+
+B记录：logs/exp/skillgenbench/openhands/deepseek-deepseek-flash/liutianyu-week3-package-01/trials/PyPDF2_gtb03__no-skill__001/agent/tool-calls.jsonl。
+标准trace：同目录agent/trace/4ad06d438a39a67b-110c48daeec646918771343aec528eee.jsonl。
+原始文件保留本机与桌面原有trace费用凭据ZIP，未用修改后的产物替换原始记录。目前没有同题成功轨迹；元数据读取成功是针对“读取失败”解释的反证，不是通过样本。
+
+## 6. AppWorld：新增接入与三题开发集
+
+来源：https://github.com/StonyBrookNLP/appworld
+此次以实际发布包0.1.3.post1及数据0.1.0为接口基准；读取过的main源码版本为42b5bcf3cd334fee33f0c37c02070a9f5807add5，main与发布包存在差异，代码按发布包接口实现。
+
+官方wheel SHA256：db77f8003982502383a50fa2974983894bd1c54f64e2fd3f7e1540d5edd037eb。
+官方数据包34280074字节，下载SHA256：fd9f9608c2ec71ed0ac25c3633a738b9129a318a129e31230425b9188e508250。
+数据来源：https://s3.us-west-2.amazonaws.com/appworld.dev/data-0.1.0.bundle
+
+已取得官方数据并读取57道dev任务，从三个不同scenario选择以下3题，整理为data/appworld标准资源包。这里只列任务ID和能力概括，不公开解包后的题目、数据库、评分源码或原生状态。
+
+| 任务ID | 首周选择目的 | 状态 |
+|---|---|---|
+| 68ee2c9_1 | 文件命名、时间条件与归档状态 | 已打包，未运行 |
+| 6c2c621_1 | 笔记导出到文件系统，检查跨应用状态 | 已打包，未运行 |
+| 383cbac_1 | 团队费用记录检索、汇总及答案提交 | 已打包，未运行；使用AppWorld内部模拟数据 |
+
+六问摘要：
+1. 测试内容：在模拟应用世界中，通过API和交互式Python持续执行任务，考察检索、计算、状态修改和跨应用协作。
+2. 输入输出：输入原始任务、规定的supervisor基本信息和任务时间；输出是应用数据库的变化以及任务要求的答案。以上三题提供真实实例，不能只检查最后一段自然语言回复。
+3. 环境与支持：发布版依赖Pydantic<2，与research/OpenHands的2.x环境不同，因此不装进原项目环境。每trial使用独立Docker内的官方AppWorld environment server，研究框架继续使用已有WSL Python环境。
+4. 工具与Skill：使用官方交互式coding设置，模型通过execute_code调用world.execute语义；变量和登录状态在多次调用间保留，提供think/finish。不提供容器shell或文件工具，评分资料不作为作答输入；本次不注入Skill。
+5. 评价：通过官方/evaluate取得TestTracker，以success作为任务是否通过，另存tests_passed/tests_total及test_pass_fraction。部分测试通过不能写成整题通过，服务错误和缺失评分不记0分。
+6. 失败原因：尚无AppWorld模型trace，不编造失败解释。已确认接入层依赖隔离需求；持续会话、原生评分、状态保存与中断清理仍须运行验证。
+
+实现位置与调用关系：
+- tools/prepare_appworld.py：从已下载本地数据复制公共资料和所选dev任务，记录版本和逐文件哈希，拒绝覆盖已有包。
+- datasets/appworld.py：load_tasks解释包，prepare_task生成单trial容器材料，setup_environment初始化会话，evaluate把原生评分转成Score。
+- environment/appworld.py：每个环境对象持有一个官方服务会话；调用initialize/execute/evaluate/close，容器销毁沿用原生命周期。原生输出目录绑定到本trial宿主产物目录，评分后另行导出原生状态。
+- tools/openhands/appworld.py：execute_code复用现有ShellExecutor桥接和工具调用日志，不重写模型循环。tools/openhands/toolset.py只增加显式工具映射，不改变其他任务的默认工具。
+- tools/run_evaluation_wsl.ps1：抽取已有WSL启动实现，原run_skillgenbench.ps1与新run_appworld.ps1只选择配置；保留原SkillGenBench命令参数与退出码约定。
+
+当前实际执行：下载/读取官方数据，执行资源包准备脚本，完成Python/TOML/PowerShell静态语法解析与调用链复核。未构建或启动新AppWorld容器，未运行新Agent，未新增测试文件或测试框架。未执行测试，由用户自行验证。上述“已打包”不表示持续会话、评分或清理已经运行通过。
+
+AppWorld数据及其派生状态按上游的分发限制保留本机，未随公开代码上传解包材料。包描述与索引及LICENSE/README_BEFORE_SHARING在本机资源目录保留，后续分享原始数据或trace前也应按上游要求处理。
+
+## 7. OSWorld-Verified：第二优先接入范围与明确阻塞
+
+源码：https://github.com/xlang-ai/OSWorld/tree/5123bfdbbc34b947bcffcff564abc62d0ab7072d
+已读取当前Verified仓库的原生环境、依赖和具体任务，选两道办公/本地文件题：
+
+| ID | 题目能力与原生验收 | 当前状态 |
+|---|---|---|
+| 23393935-50c7-4a86-aeea-2b78fd089c5c | 从嵌套目录整理JPG；原生check_moved_jpgs，输入素材由原config给出 | 原题与评分定义已核对，素材尚未下载或验证 |
+| 0810415c-bde4-4443-9047-d5f70165a697 | Writer段落双倍行距；原生compare_line_spacing，两个参考按or组合 | 原题与评分定义已核对，DOCX素材尚未下载或验证 |
+
+接口：reset(task_config)负责快照和初始化；reset/step返回截图、可选可访问树/终端和指令；step(action)执行桌面动作，DONE/FAIL/WAIT遵循原生语义；evaluate()在postconfig后运行原生getter/metric；close()停止虚拟机。step中的循环reward不能直接当最终评分。
+
+实际阻塞：PATH和VMware/VirtualBox常见位置未找到vmrun或VBoxManage，尚未准备VM镜像及快照；未核对其他provider和Docker/KVM路径，不据此断言本机绝对不支持。research当前显式工具输出主要为文本，截图送入模型、动作执行和图像trace保存链路尚未接通，也未实测模型图像能力。
+
+建议后续修改位置：environment/osworld.py管理虚拟机与观察动作生命周期，datasets/osworld.py负责原题准备和评分，两个harness的工具适配复用同一环境操作。当前没有提供不可运行的OSWorld占位适配器或伪造配置，源码接入分析保存在integration-notes/osworld-first-week.json。
+
+首周状态为“两题已选、接口差异和缺失条件已记录”，不是“OSWorld已跑通”。不以四个模型/harness组合都能运行为前提。
+
+## 8. 怎样亲自继续与验收
+
+执行目录：C:\Users\29666\Documents\Codex\2026-11-15\1-5-https-github-com-ymxiong\work\research。
+前置条件：原有WSL research环境、Docker Desktop的Linux引擎，以及本机已有data/appworld资源包。密钥保持本机.env，不写进TOML或Git。
+
+先预览（不请求模型，不启动Docker；本轮未执行此命令）：
+```powershell
+.\tools\run_appworld.ps1 --name liutianyu-appworld-firstweek-01 --plan
+```
+预期：显示AppWorld资源身份、所选一题、no-skill、repeats=1、planned_trials=1、execute_code/think/finish和原生评分入口。
+
+实际预跑命令（会构建容器、请求付费模型、改变本trial模拟应用状态并保存记录；本轮未执行）：
+```powershell
+.\tools\run_appworld.ps1 --name liutianyu-appworld-firstweek-01
+```
+当前默认deepseek-flash/OpenHands、最多15轮、300秒、单次最大输出2048token，无金额硬上限。原来两次单题付费授权已经使用，追加预跑须确认具体费用范围。首次题稳定后，将config/datasets/appworld.toml的sample_size从1改为3，并用新实验名，各题一次；未稳定前不直接批跑。
+
+检查时先看result.json的status/errors，再看reward/passed及native-evaluation.json。原生success对应整题通过，test_pass_fraction对应子测试覆盖；缺评分与0分分开。查看native-artifacts、环境产物、agent/tool-calls.jsonl和标准trace，最后核对资源是否已清理及llm账本记录。再次运行必须用新实验名或遵守原resume身份校验，不能覆盖既有实验。
+
+本次待完成：AppWorld容器及会话验证、第一题真实运行、再扩到3题；OSWorld虚拟化条件与图像链路。第二harness、自动Skill生成和正式矩阵留到接入稳定后。
+
+## 9. 第三次提交怎样填写
+
+论文方向；任务名称与描述使用同目录“第三次提交填写稿”。GitHub请提交个人分支网址，让老师直接看到接入代码和reports/first-week-report.txt。本地Markdown原件在桌面“刘添予-第三周交付”。
+
+本报告没有代替本人学习确认、老师验收或表单提交；没有把AppWorld新代码的静态分析描述为测试通过。先前Spring源码阅读等培养任务保留在桌面历史报告，未构建/启动Spring，也未在其中验证Skill。

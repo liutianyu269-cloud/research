@@ -1,0 +1,8 @@
+[dataset]
+package = "../../data/appworld"
+# 首次预跑只从显式打包的开发集候选中选择一题；扩到3–5题时调整sample_size。
+sample_size = 1
+seed = 42
+loader = "datasets.appworld:load_tasks"
+prepare = "datasets.appworld:prepare_task"
+setup = "datasets.appworld:setup_environment"
