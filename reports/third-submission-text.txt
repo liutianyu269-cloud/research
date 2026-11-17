@@ -5,7 +5,9 @@
 任务描述：
 本人负责方向二“从Git仓库生成可复用Skill”。本次按首周任务推进：理解research的任务读取、环境准备、harness执行、评分和trace保存流程；分析GitTaskBench并回答六个问题，给出两个真实任务示例；完成SkillGenBench单题接入和基线记录，分析失败证据；开展AppWorld持续会话环境接入，并对OSWorld-Verified进行第二优先接入分析。
 
-当前实际进度：SkillGenBench已完成一次有有效原生评分的完整单题预跑，得分0，保留早期失败及补评分记录；AppWorld已编写独立容器环境、execute_code工具、原生评分适配和四份配置，并准备三个不同场景的开发集任务，尚未完成容器及模型运行验证；OSWorld-Verified已选两道文件/办公任务并核对接口和评分定义，虚拟机条件及图像观察链路尚未齐备。仓库提供代码、实验表、问题分析、复现步骤及待办，不把未运行项目写成已完成。
+当前实际进度：SkillGenBench已完成单题完整预跑并保留早期失败及补评分；AppWorld已接入独立容器持续会话、execute_code工具、原生评分、状态和trace保存，完成三个不同场景的开发集任务各一次真实作答。三题整题均未通过，原生检查分别通过4/5、7/8、1/2；首题评分后导出失败的原记录保留，已恢复已有原生评分，并通过不调用模型的导出与清理核对；后两题主流程正常完成。新增43次模型请求，账本估算0.13772178元。
+
+OSWorld-Verified已选两道文件/办公任务，核对原生接口和评分，并验证WSL与Docker内可见KVM设备；尚未启动VM或Agent，镜像、快照和观察动作适配仍待补齐。仓库提供代码、实验表、失败证据、复现步骤和具体接入阻塞，不把代码实现、整题成功和未运行项目混为一谈。
 
 验收标准：能说明主流程和配置位置；主数据集六问及两个实例可查；预跑配置、产物、评分和trace可追溯；至少一个失败观察有具体步骤和证据；未接通部分有明确接口差异、缺失条件和修改建议。
 
@@ -15,4 +17,4 @@ GitHub仓库链接：
 https://github.com/liutianyu269-cloud/research/tree/codex/liutianyu-skillgenbench
 
 备注：
-请查看codex/liutianyu-skillgenbench分支。首周报告位于reports/first-week-report.txt，提交填写稿位于reports/third-submission-text.txt；AppWorld和OSWorld的范围记录位于integration-notes/。完整120次矩阵和自动Skill生成尚未开展。本填写稿供复制到表单，当前没有代为提交表单。
+请查看codex/liutianyu-skillgenbench分支。首周报告位于reports/first-week-report.txt，提交填写稿位于reports/third-submission-text.txt；AppWorld和OSWorld记录位于integration-notes/。原始trace、状态与费用账本保留本机，按上游要求处理数据分发。完整120次矩阵和自动Skill生成尚未开展。本填写稿供复制到表单，当前没有代为提交表单。

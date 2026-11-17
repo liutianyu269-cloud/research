@@ -11,22 +11,55 @@
       "id": "68ee2c9_1",
       "category": "文件命名与归档",
       "reason": "检查时间条件、批量修改和文件状态",
-      "status": "packaged_not_run"
+      "status": "error",
+      "original_reward": null,
+      "native_tests_passed": 4,
+      "native_tests_total": 5,
+      "native_success": false,
+      "existing_native_result_recovered_reward": 0.0
     },
     {
       "id": "6c2c621_1",
       "category": "笔记与文件应用间的导出",
       "reason": "检查跨应用读取、文件命名和状态持久化",
-      "status": "packaged_not_run"
+      "status": "completed",
+      "original_reward": 0.0,
+      "native_tests_passed": 7,
+      "native_tests_total": 8,
+      "native_success": false
     },
     {
       "id": "383cbac_1",
       "category": "团队费用核对",
       "reason": "检查记录检索、数据汇总与答案提交；AppWorld内部模拟数据",
-      "status": "packaged_not_run"
+      "status": "completed",
+      "original_reward": 0.0,
+      "native_tests_passed": 1,
+      "native_tests_total": 2,
+      "native_success": false
     }
   ],
   "scope": "三个不同scenario的开发集任务；用于首周接入，未作为正式测试集或稳定模型比较",
-  "execution_status": "resource_preparation_only; no Docker build or new model inference",
-  "runtime": "isolated AppWorld server with execute_code; research/OpenHands dependencies unchanged"
+  "execution_status": "three authorized actual model solves completed; two original valid scores, first original export error preserved and existing native result recovered; no extra model solve",
+  "runtime": "isolated AppWorld server with execute_code; research/OpenHands dependencies unchanged",
+  "runtime_versions": {
+    "python": "3.11.14",
+    "appworld": "0.1.3.post1",
+    "pydantic": "1.10.27",
+    "openhands_sdk": "1.53.0"
+  },
+  "base_image": "ghcr.io/astral-sh/uv:0.9.22-python3.11-bookworm-slim@sha256:642240825d494aecedccd6fd62c30763b927d88cc6a6b51a1a3f867bc38905cd",
+  "model_calls": 43,
+  "estimated_cost_CNY": "0.13772178",
+  "original_valid_scores": 2,
+  "original_passes": 0,
+  "native_task_goal_completion_percent_with_recovery": 0.0,
+  "scenario_goal_completion": "not_reported; one dev task per scenario, not complete scenario variants",
+  "zero_model_export_verification": {
+    "model_calls_before": 45,
+    "model_calls_after": 45,
+    "native_artifact_files": 19,
+    "environment_destroyed": true
+  },
+  "all_trial_resources_absent": true
 }

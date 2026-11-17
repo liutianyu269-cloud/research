@@ -13,7 +13,7 @@
 |---|---|---|
 | 框架流程说明 | 第2节说明真实入口、四份配置、执行位置与记录位置；SkillsBench 示例资源此前已准备 | 本人仍需按步骤阅读和解释；助手代读不等于本人已掌握 |
 | 主数据集分析 | 第3节回答 GitTaskBench 六问并给两个真实样例；SkillGenBench 已有个人接入与补充分析 | GitTaskBench 尚无本人运行 trace，组内接入分工仍需协调 |
-| 少量预跑或明确阻塞 | SkillGenBench 保留两次实际单题执行及补评分；AppWorld 新增适配代码和3题开发集资源包 | AppWorld 尚未构建/启动容器或调用模型；OSWorld 环境未齐，未运行 |
+| 少量预跑或明确阻塞 | SkillGenBench 保留两次实际单题执行及补评分；AppWorld已完成3题各1次真实模型作答 | AppWorld首题评分后导出失败的原记录保留，已有原生评分恢复；OSWorld尚未启动VM或Agent |
 | 一个可复核观察 | PDF 三个参考字段值正确，但附加字段导致严格评分失败；原题字段约定不完整 | 尚无同题成功轨迹或跨 harness 对照，不作优劣结论 |
 
 本次没有生成“可复用 Skill 已有效”的研究结论。首周不要求完成自动 Skill 生成方法。完整10题×2模型×2harness×3次=120次矩阵，按文档在接入稳定后逐步开展，未计入已完成。
@@ -112,9 +112,9 @@ B记录：logs/exp/skillgenbench/openhands/deepseek-deepseek-flash/liutianyu-wee
 
 | 任务ID | 首周选择目的 | 状态 |
 |---|---|---|
-| 68ee2c9_1 | 文件命名、时间条件与归档状态 | 已打包，未运行 |
-| 6c2c621_1 | 笔记导出到文件系统，检查跨应用状态 | 已打包，未运行 |
-| 383cbac_1 | 团队费用记录检索、汇总及答案提交 | 已打包，未运行；使用AppWorld内部模拟数据 |
+| 68ee2c9_1 | 文件命名、时间条件与归档状态 | 已作答；原始导出失败，原生结果恢复0分，4/5项通过 |
+| 6c2c621_1 | 笔记导出到文件系统，检查跨应用状态 | 主流程完成，0分，7/8项通过 |
+| 383cbac_1 | 团队费用记录检索、汇总及答案提交 | 主流程完成，0分，1/2项通过；内部模拟数据 |
 
 六问摘要：
 1. 测试内容：在模拟应用世界中，通过API和交互式Python持续执行任务，考察检索、计算、状态修改和跨应用协作。
@@ -122,7 +122,7 @@ B记录：logs/exp/skillgenbench/openhands/deepseek-deepseek-flash/liutianyu-wee
 3. 环境与支持：发布版依赖Pydantic<2，与research/OpenHands的2.x环境不同，因此不装进原项目环境。每trial使用独立Docker内的官方AppWorld environment server，研究框架继续使用已有WSL Python环境。
 4. 工具与Skill：使用官方交互式coding设置，模型通过execute_code调用world.execute语义；变量和登录状态在多次调用间保留，提供think/finish。不提供容器shell或文件工具，评分资料不作为作答输入；本次不注入Skill。
 5. 评价：通过官方/evaluate取得TestTracker，以success作为任务是否通过，另存tests_passed/tests_total及test_pass_fraction。部分测试通过不能写成整题通过，服务错误和缺失评分不记0分。
-6. 失败原因：尚无AppWorld模型trace，不编造失败解释。已确认接入层依赖隔离需求；持续会话、原生评分、状态保存与中断清理仍须运行验证。
+6. 失败原因：已有三份实际trace。前两题的操作检查通过，但提交了额外的文字答案，答案匹配未过；第三题继续查证到轮次耗尽，未提交最终答案。另发现镜像拉取与原生目录导出问题，单独记作框架/环境故障，不归因于模型。详见下一节。
 
 实现位置与调用关系：
 - tools/prepare_appworld.py：从已下载本地数据复制公共资料和所选dev任务，记录版本和逐文件哈希，拒绝覆盖已有包。
@@ -131,9 +131,37 @@ B记录：logs/exp/skillgenbench/openhands/deepseek-deepseek-flash/liutianyu-wee
 - tools/openhands/appworld.py：execute_code复用现有ShellExecutor桥接和工具调用日志，不重写模型循环。tools/openhands/toolset.py只增加显式工具映射，不改变其他任务的默认工具。
 - tools/run_evaluation_wsl.ps1：抽取已有WSL启动实现，原run_skillgenbench.ps1与新run_appworld.ps1只选择配置；保留原SkillGenBench命令参数与退出码约定。
 
-当前实际执行：下载/读取官方数据，执行资源包准备脚本，完成Python/TOML/PowerShell静态语法解析与调用链复核。未构建或启动新AppWorld容器，未运行新Agent，未新增测试文件或测试框架。未执行测试，由用户自行验证。上述“已打包”不表示持续会话、评分或清理已经运行通过。
+实际执行范围：经用户明确追加授权，完成三个dev任务各一次真实模型作答，以及一次不调用模型的原生评分/导出/清理核对。持续会话和原生评分均已实际使用，后两题由主流程正常保存评分和产物。没有新增测试文件/测试框架，未运行额外测试套件。第一题保留原导出失败状态并单独恢复已有原生评分，不能写成三个trial都无错误完成。异常取消/工具硬超时路径未专门注入验证，也没有取得整题成功样本。
 
 AppWorld数据及其派生状态按上游的分发限制保留本机，未随公开代码上传解包材料。包描述与索引及LICENSE/README_BEFORE_SHARING在本机资源目录保留，后续分享原始数据或trace前也应按上游要求处理。
+
+## 6.1 实际运行结果、故障修复与费用
+
+用户授权最多3个任务、各1次模型作答，先确认首题链路。本次遵守该范围，没有重调首题模型。三题均使用同一模型、工具、no-skill条件、15轮/300秒及2048单次最大输出限制，提示词没有根据评分答案临时修改。
+
+| 任务 | 主流程状态/奖励 | 原生检查通过 | 模型请求数 | 输入/输出token | Agent/总用时秒 | 估算CNY |
+|---|---|---|---|---|---|---|
+| 68ee2c9_1 | 原始error/null；已有原生响应另行恢复0分 | 4/5 | 15 | 198239/4003 | 113.888/244.249 | 0.03699154 |
+| 6c2c621_1 | completed/0 | 7/8 | 13 | 177142/3218 | 64.588/107.472 | 0.03525926 |
+| 383cbac_1 | completed/0 | 1/2 | 15 | 265310/6341 | 86.293/123.429 | 0.06547098 |
+
+原始有效评分口径：通过/有效评分/计划=0/2/3，评分覆盖率2/3，通过率0%。第一题原生评分已保存，在导出阶段失败，另有0分恢复条目；若按已有原生响应加恢复统计，则为0/3，单独报告，不修改原result.json，也不把恢复算成新trial。三题来自三个不同scenario，每个仅一题；不把这次子集当作完整SGC实验。AppWorld原生整题成功对应TGC，本子集含恢复TGC为0%，同时保留逐题子测试通过比例；子测试通过比例不能替代整题完成率。
+
+三次实际作答共43次模型请求，输入640691、输出13562 token，新增账本估算0.13772178元。平均输入/输出为213563.7/4520.7 token，平均Agent阶段88.256秒、总流程158.383秒；统计包含首题导出失败的实际作答，不含无模型镜像失败与无模型验收。SDK total_tokens均为空；缓存与reasoning仍按原计价类别处理，不重复相加。Agent阶段包含SDK初始化及远程价格表读取等待，不是纯模型服务延迟；首次构建和后续缓存命中的环境时间也不能直接比较。
+
+连同此前两次SkillGenBench运行，账本共有73次请求，估算累计0.32729392元。以上均为research-llm账本估算，非平台实扣或已获报销承诺，项目仍是临时标记。
+
+已实测运行时：任务Python3.11.14、AppWorld0.1.3.post1、Pydantic1.10.27；框架OpenHands1.53.0。任务镜像来自Astral官方GHCR固定版本0.9.22-python3.11-bookworm-slim，本次解析摘要sha256:642240825d494aecedccd6fd62c30763b927d88cc6a6b51a1a3f867bc38905cd。原research环境未安装AppWorld依赖。
+
+保留的工程问题：
+1. 第一次环境准备在Docker Hub拉取python:3.11-slim时超时，尚未请求模型；以新实验名和同为Python3.11的官方GHCR来源继续，原失败目录保留。
+2. 发布版原生目录实际包含experiments/outputs/research/tasks/<task_id>。第一次代码按新版文档示例少写tasks，评分后导出失败；已改由环境提供native_output_path，数据集复用该路径。绑定目录已保留首题状态，原生JSON按统一native_score解释恢复，原结果SHA256保持不变。
+3. 另做一次无模型的真实环境/原生评分/产物导出/清理核对：导出19个文件，环境destroyed，前后账本均45次请求。此记录没有Agent，不计入基线样本。
+4. 三个模型trial、镜像失败尝试及无模型验收共5个Compose项目，经实际CLI查询均无残留容器、网络或卷。异常中断和硬超时边界尚未专门注入测试。
+
+可复核观察：首题第15次execute_code提交了附加文字答案，第二题第12次也提交了附加文字答案；API返回已标记任务完成，随后原生答案检查不通过，其余4项/7项操作检查通过。工具“执行成功”的回执不等于整题验收通过。第三题提出候选计算结果后继续查证，在第15轮上限结束，没有调用任务完成接口或finish。以上是各自trace中的直接观察，未改提示词或产物追求分数。
+
+本机证据根目录：logs/exp/appworld/openhands/deepseek-deepseek-flash/。三个实验名分别为liutianyu-appworld-firstweek-68ee2c9-02、liutianyu-appworld-firstweek-6c2c621-01、liutianyu-appworld-firstweek-383cbac-01。每个trial包含native-runtime.json、native-task.json、native-evaluation.json、原生状态、agent事件、标准trace和usage；首题原始导出错误另保留。恢复记录：logs/evaluation-recovery/appworld-68ee2c9-export-recovery/recovery.json。无模型记录：logs/continuation-verification/appworld-export-fixed/verification.json。汇总：logs/continuation-verification/appworld-firstweek-summary.json。原始AppWorld记录按上游分发要求保留本机，公开仓库只同步代码和汇总分析。
 
 ## 7. OSWorld-Verified：第二优先接入范围与明确阻塞
 
@@ -147,32 +175,32 @@ AppWorld数据及其派生状态按上游的分发限制保留本机，未随公
 
 接口：reset(task_config)负责快照和初始化；reset/step返回截图、可选可访问树/终端和指令；step(action)执行桌面动作，DONE/FAIL/WAIT遵循原生语义；evaluate()在postconfig后运行原生getter/metric；close()停止虚拟机。step中的循环reward不能直接当最终评分。
 
-实际阻塞：PATH和VMware/VirtualBox常见位置未找到vmrun或VBoxManage，尚未准备VM镜像及快照；未核对其他provider和Docker/KVM路径，不据此断言本机绝对不支持。research当前显式工具输出主要为文本，截图送入模型、动作执行和图像trace保存链路尚未接通，也未实测模型图像能力。
+实际阻塞：PATH和VMware/VirtualBox常见位置未找到vmrun或VBoxManage，尚未准备VM镜像及快照；后续已实测Ubuntu WSL及Docker容器中都可见/dev/kvm。尚未启动真实VM；设备可见不等于镜像、快照、依赖和观察动作链路已齐备。research当前显式工具输出主要为文本，截图送入模型、动作执行和图像trace保存链路尚未接通，也未实测模型图像能力。
 
 建议后续修改位置：environment/osworld.py管理虚拟机与观察动作生命周期，datasets/osworld.py负责原题准备和评分，两个harness的工具适配复用同一环境操作。当前没有提供不可运行的OSWorld占位适配器或伪造配置，源码接入分析保存在integration-notes/osworld-first-week.json。
 
-首周状态为“两题已选、接口差异和缺失条件已记录”，不是“OSWorld已跑通”。不以四个模型/harness组合都能运行为前提。
+已继续核对官方DockerVMManager的Ubuntu镜像地址：压缩包12,273,896,463字节（约12.27GB）。直连HEAD超时，经本机代理HEAD返回200；没有把这一结果描述成镜像不可下载。本机当时C盘约81GiB空闲，镜像尚未下载，也未启动VM。下一步需部署镜像/快照和原生运行依赖，再接观察动作工具与评分；完整接入仍是待办。首周按文档提交“两题已选、接口差异和资源条件已核对”的具体接入缺口，不声称OSWorld已跑通，也不以四个模型/harness组合都可运行为前提。
 
 ## 8. 怎样亲自继续与验收
 
 执行目录：C:\Users\29666\Documents\Codex\2026-11-15\1-5-https-github-com-ymxiong\work\research。
 前置条件：原有WSL research环境、Docker Desktop的Linux引擎，以及本机已有data/appworld资源包。密钥保持本机.env，不写进TOML或Git。
 
-先预览（不请求模型，不启动Docker；本轮未执行此命令）：
+先预览（不请求模型，不启动Docker；下面使用尚未运行的新学习实验名）：
 ```powershell
-.\tools\run_appworld.ps1 --name liutianyu-appworld-firstweek-01 --plan
+.\tools\run_appworld.ps1 --name liutianyu-learning-appworld-01 --task 68ee2c9_1 --plan
 ```
 预期：显示AppWorld资源身份、所选一题、no-skill、repeats=1、planned_trials=1、execute_code/think/finish和原生评分入口。
 
-实际预跑命令（会构建容器、请求付费模型、改变本trial模拟应用状态并保存记录；本轮未执行）：
+后续实际预跑命令（会请求付费模型、改变本trial模拟应用状态并保存记录；当前三题授权已用完，新运行需另行确认范围）：
 ```powershell
-.\tools\run_appworld.ps1 --name liutianyu-appworld-firstweek-01
+.\tools\run_appworld.ps1 --name liutianyu-learning-appworld-01 --task 68ee2c9_1
 ```
-当前默认deepseek-flash/OpenHands、最多15轮、300秒、单次最大输出2048token，无金额硬上限。原来两次单题付费授权已经使用，追加预跑须确认具体费用范围。首次题稳定后，将config/datasets/appworld.toml的sample_size从1改为3，并用新实验名，各题一次；未稳定前不直接批跑。
+当前默认deepseek-flash/OpenHands、最多15轮、300秒、单次最大输出2048token，无金额硬上限。此前两次SkillGenBench单题授权和本次三题AppWorld授权均已用完。本轮逐题使用--task和不同实验名，每题一次，并非每题重复三次。正式批量运行可调整sample_size，但需先确定新的任务、预算与实验条件，不能覆盖原始记录。
 
 检查时先看result.json的status/errors，再看reward/passed及native-evaluation.json。原生success对应整题通过，test_pass_fraction对应子测试覆盖；缺评分与0分分开。查看native-artifacts、环境产物、agent/tool-calls.jsonl和标准trace，最后核对资源是否已清理及llm账本记录。再次运行必须用新实验名或遵守原resume身份校验，不能覆盖既有实验。
 
-本次待完成：AppWorld容器及会话验证、第一题真实运行、再扩到3题；OSWorld虚拟化条件与图像链路。第二harness、自动Skill生成和正式矩阵留到接入稳定后。
+当前待完成：OSWorld的VM镜像/快照、运行依赖和观察动作适配；组内GitTaskBench接入分工；老师验收与本人理解确认。AppWorld已做三题预跑，不再追加付费调用。第二harness、自动Skill生成和正式矩阵留到接入稳定后；本轮观察不能证明模型或harness的稳定优劣。
 
 ## 9. 第三次提交怎样填写
 

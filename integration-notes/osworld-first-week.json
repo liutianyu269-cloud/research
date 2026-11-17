@@ -31,7 +31,7 @@
   },
   "current_gaps": [
     "本机PATH和VMware/VirtualBox常见安装位置未找到vmrun或VBoxManage；没有据此排除其他provider",
-    "尚未准备VM镜像、初始快照与任务素材；未核对Docker/KVM路径",
+    "已实测Ubuntu WSL和Docker容器内可见/dev/kvm；尚未准备OSWorld虚拟机镜像、初始快照及原生运行环境，未实际启动VM。设备可见不等于完整环境可用。",
     "research现有显式工具输出以文本为主；图像观察、模型输入与recorder保存链路未接通，也未实测模型图像能力",
     "主机shell执行不能替代原生桌面动作；不能把这些源码分析算成模型trial"
   ],
@@ -40,5 +40,22 @@
     "datasets/osworld.py：后续任务准备和native evaluate→Score",
     "tools/openhands与tools/dsh：后续接通同一环境观察/动作；图像序列需对应trace支持"
   ],
-  "scope": "第二优先级已开展源码接入分析和两题选择；尚无可运行OSWorld适配器，不提供虚假可执行配置"
+  "scope": "第二优先级已开展源码接入分析和两题选择；尚无可运行OSWorld适配器，不提供虚假可执行配置",
+  "prerequisite_observations": {
+    "wsl_kvm_device": "present",
+    "docker_kvm_device": "present",
+    "vmware_or_virtualbox_in_path_or_common_locations": "not_found",
+    "vm_started": false,
+    "agent_trial_run": false
+  },
+  "vm_image_preflight": {
+    "source": "https://huggingface.co/datasets/xlangai/ubuntu_osworld/resolve/main/Ubuntu.qcow2.zip",
+    "source_from": "desktop_env/providers/docker/manager.py at pinned OSWorld revision",
+    "compressed_bytes": 12273896463,
+    "direct_head": "timeout",
+    "proxy_head_http_status": 200,
+    "proxy_endpoint": "local loopback 127.0.0.1:7890",
+    "download_started": false,
+    "free_C_GiB_at_check": 81.0
+  }
 }

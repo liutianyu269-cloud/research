@@ -13,6 +13,7 @@ from environment.docker import DockerEnvironment
 APPWORLD_VERSION = "0.1.3.post1"
 APPWORLD_DATA_VERSION = "0.1.0"
 APPWORLD_ROOT = "/opt/appworld"
+APPWORLD_EXPERIMENT = "research"
 
 # 只在容器内访问官方服务，不开放宿主端口；JSON 参数始终作为数据传递。
 _CLIENT = r'''
@@ -50,6 +51,10 @@ class AppWorldEnvironment(DockerEnvironment):
         self._initialized = False
         super().__init__(task_dir, output_dir=output_dir, workdir=APPWORLD_ROOT,
                          cleanup_volumes=True, **options)
+
+    @property
+    def native_output_path(self) -> str:
+        return f"{APPWORLD_ROOT}/experiments/outputs/{APPWORLD_EXPERIMENT}/tasks/{self.task_id}"
 
     def _command(self, operation: str, payload: dict, timeout: float) -> list[str]:
         return [self.worker_python_executable, "-I", "-B", "-c", _CLIENT,
@@ -94,7 +99,7 @@ class AppWorldEnvironment(DockerEnvironment):
         if self._initialized:
             raise EnvironmentError("同一 trial 不允许重复初始化并重置 AppWorld 状态")
         response = await self._request("initialize", {
-            "task_id": self.task_id, "experiment_name": "research",
+            "task_id": self.task_id, "experiment_name": APPWORLD_EXPERIMENT,
             "timeout_seconds": 20,
         })
         self._initialized = True

@@ -110,7 +110,7 @@ def prepare_task(task: Task, destination: Path, condition: str) -> PreparedTask:
         "---\n" + yaml.safe_dump(config) + "---\n\n" + task.instruction + "\n", encoding="utf-8",
     )
     (environment_dir / "Dockerfile").write_text(
-        "FROM python:3.11-slim\nWORKDIR /opt/appworld\n"
+        "FROM ghcr.io/astral-sh/uv:0.9.22-python3.11-bookworm-slim\nWORKDIR /opt/appworld\n"
         f'RUN ["python", "-m", "pip", "install", "--no-cache-dir", "--index-url", "https://pypi.org/simple", "appworld=={APPWORLD_VERSION}"]\n'
         'RUN ["appworld", "install"]\nCOPY data /opt/appworld/data\n', encoding="utf-8",
     )
@@ -126,6 +126,17 @@ def prepare_task(task: Task, destination: Path, condition: str) -> PreparedTask:
 async def setup_environment(context: TrialContext) -> None:
     if not isinstance(context.environment, AppWorldEnvironment):
         raise TypeError("AppWorld 需要持续会话环境")
+    probe = await context.environment.execute([
+        "python", "-c", "import importlib.metadata as m,json,sys; "
+        "print(json.dumps({'python':sys.version,'appworld':m.version('appworld'),"
+        "'pydantic':m.version('pydantic')}))",
+    ])
+    if not probe.success:
+        raise RuntimeError(f"无法读取AppWorld任务运行时版本：{probe.stderr}")
+    runtime = json.loads(probe.stdout)
+    write_json(context.output_dir / "native-runtime.json", runtime)
+    if runtime["appworld"] != APPWORLD_VERSION:
+        raise ValueError("容器AppWorld版本与资源包记录不一致")
     actual_task = await context.environment.initialize_task()
     write_json(context.output_dir / "native-task.json", actual_task)
 
@@ -137,10 +148,15 @@ async def evaluate(context: TrialContext, agent: AgentResult) -> Score:
     native = await context.environment.evaluate_task()
     write_json(context.output_dir / "native-evaluation.json", native)
     await context.environment.download(
-        f"{APPWORLD_ROOT}/experiments/outputs/research/{context.task.id}",
+        context.environment.native_output_path,
         context.output_dir / "native-artifacts", directory=True,
     )
-    if (type(native.get("success")) is not bool or type(native.get("num_tests")) is not int
+    return native_score(native, db_version=context.task.metadata["db_version"])
+
+
+def native_score(native: dict, *, db_version: str) -> Score:
+    """统一解释已取得的原生评分；可用于保留原记录的离线恢复，不重新调用模型。"""
+    if (not isinstance(native, dict) or type(native.get("success")) is not bool or type(native.get("num_tests")) is not int
             or native["num_tests"] <= 0 or not isinstance(native.get("passes"), list)
             or not isinstance(native.get("failures"), list)):
         raise ValueError("AppWorld 未产生有效原生评分，不记为零分")
@@ -150,5 +166,5 @@ async def evaluate(context: TrialContext, agent: AgentResult) -> Score:
     return Score(reward=float(native["success"]), metrics={
         "native_success": native["success"], "test_pass_fraction": passes / total,
         "tests_passed": passes, "tests_total": total, "package_version": APPWORLD_VERSION,
-        "db_version": context.task.metadata["db_version"], "split": "dev",
+        "db_version": db_version, "split": "dev",
     })
