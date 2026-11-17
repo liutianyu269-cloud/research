@@ -1,0 +1,6 @@
+[dataset]
+package = "../../data/skillgenbench"
+task_ids = ["PyPDF2_gtb03"]
+loader = "datasets.skillgenbench:load_tasks"
+prepare = "datasets.skillgenbench:prepare_task"
+setup = "datasets.skillgenbench:setup_environment"

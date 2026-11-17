@@ -183,6 +183,18 @@ def _inject_worker_runtime(dockerfile: Path) -> None:
     dockerfile.write_text(rewritten, encoding="utf-8", newline="\n")
 
 
+def prepare_docker_runtime(task_dir: str | Path, *, package_mirrors: bool = True) -> None:
+    """为任务副本准备独立 Python；原有任务默认继续配置已有镜像源。"""
+    environment_dir = Path(task_dir) / "environment"
+    if package_mirrors:
+        for dockerfile in sorted(environment_dir.rglob("Dockerfile*")):
+            if dockerfile.is_file():
+                _inject_package_mirrors(dockerfile)
+    main_dockerfile = environment_dir / "Dockerfile"
+    if main_dockerfile.is_file():
+        _inject_worker_runtime(main_dockerfile)
+
+
 def materialize_skillsbench_task(index_path: str | Path, task_id: str,
                                 destination: str | Path) -> Path:
     """将任务数据复制到新的持久准备目录，不修改原始数据。
@@ -233,10 +245,5 @@ def materialize_skillsbench_task(index_path: str | Path, task_id: str,
             shutil.copytree(source, target)
         else:
             shutil.copy2(source, target)
-    for dockerfile in sorted((destination / "environment").rglob("Dockerfile*")):
-        if dockerfile.is_file():
-            _inject_package_mirrors(dockerfile)
-    main_dockerfile = destination / "environment" / "Dockerfile"
-    if main_dockerfile.is_file():
-        _inject_worker_runtime(main_dockerfile)
+    prepare_docker_runtime(destination)
     return destination
