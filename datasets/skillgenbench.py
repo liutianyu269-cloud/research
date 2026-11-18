@@ -209,6 +209,42 @@ async def setup_environment(context: TrialContext) -> None:
 
 async def evaluate(context: TrialContext, agent: AgentResult) -> Score:
     """作答完成后才上传原生评分资料，保留原始诊断并区分缺失评分与合法零分。"""
+    return await _evaluate_artifacts(context)
+
+
+def _missing_output(comments: str) -> bool:
+    return comments == "Output file does not exist" or comments.startswith("Output file not found:")
+
+
+async def replay_artifact(context: TrialContext, artifacts: Path | None) -> Score:
+    """只回放题目要求的文件。未传产物时验证原生评分器能识别空输出。"""
+    from environment.base import EnvironmentError
+
+    if artifacts is None:
+        score = await _evaluate_artifacts(context)
+        if score.reward != 0 or not _missing_output(score.metrics["native_outcome"].get("comments", "")):
+            raise EnvironmentError("原生评分未通过空输出检查，详见 verifier 日志")
+        return score
+
+    filename = context.task.metadata["upstream"]["expected"]["output_file"]
+    if Path(filename).name != filename:
+        raise ValueError(f"题目要求的产物必须是单个文件名：{filename!r}")
+    source = resource_path(artifacts, filename)
+    if not source.is_file():
+        raise ValueError(f"缺少原始产物：{source}")
+    staged = context.output_dir / "replay-input" / filename
+    staged.parent.mkdir()
+    shutil.copyfile(source, staged)
+    with staged.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    await context.environment.upload(staged, f"/workspace/output/{filename}")
+    score = await _evaluate_artifacts(context)
+    return Score(score.reward, {
+        **score.metrics, "replayed_artifact": {"name": filename, "sha256": digest},
+    })
+
+
+async def _evaluate_artifacts(context: TrialContext) -> Score:
     from environment import DockerEnvironment
     from environment.base import EnvironmentError
 
@@ -234,9 +270,7 @@ async def evaluate(context: TrialContext, agent: AgentResult) -> Score:
     comments = outcome.get("comments", "")
     if not isinstance(comments, str):
         raise EnvironmentError("原生评分诊断的 comments 不是字符串")
-    output_error = comments == "Output file does not exist" or comments.startswith(
-        ("Output file not found:", "Failed to open output PDF:"),
-    )
+    output_error = _missing_output(comments) or comments.startswith("Failed to open output PDF:")
     reference_error = comments.startswith((
         "Reference file not found:", "Failed to parse JSON reference comparison:",
         "Groundtruth file does not exist", "Failed to open groundtruth PDF:",

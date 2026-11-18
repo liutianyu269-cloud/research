@@ -1,6 +1,8 @@
 """在数据集、智能体和评分函数之间传递的数据。"""
 
 from dataclasses import dataclass, field
+import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -39,3 +41,13 @@ class TrialContext:
 class Score:
     reward: float
     metrics: dict[str, Any] = field(default_factory=dict)
+
+
+def validate_score(score: Score) -> None:
+    if not isinstance(score, Score):
+        raise TypeError("评分器必须返回 evaluation.Score")
+    reward = score.reward
+    if (isinstance(reward, bool) or not isinstance(reward, (int, float))
+            or not math.isfinite(reward) or not 0 <= reward <= 1):
+        raise ValueError("评分器奖励必须为 [0, 1] 范围内的有限数值")
+    json.dumps(score.metrics, allow_nan=False)

@@ -22,7 +22,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 project = Path(sys.argv.pop(1))
-load_dotenv(project / '.env', override=False)
+if not any(arg in ('--plan', '--preflight', '--rescore-from') or arg.startswith('--rescore-from=')
+           for arg in sys.argv[1:]):
+    load_dotenv(project / '.env', override=False)
 runpy.run_module('evaluation', run_name='__main__')
 '@
 

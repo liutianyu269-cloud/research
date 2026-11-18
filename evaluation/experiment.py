@@ -67,7 +67,10 @@ def _resume_identity(config: dict) -> dict:
     """忽略列表可以调整，其余配置仍用于校验同名实验身份。"""
     dataset = dict(config["dataset"])
     dataset.pop("exclude_task_ids", None)
-    return {**config, "dataset": dataset}
+    evaluator = dict(config["evaluator"])
+    # 产物回放只在独立检查命令使用，不影响历史实验续跑。
+    evaluator.pop("artifact_replay", None)
+    return {**config, "dataset": dataset, "evaluator": evaluator}
 
 
 def _task_history(manifest: dict) -> list[dict]:

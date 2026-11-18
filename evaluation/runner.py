@@ -6,7 +6,6 @@ from dataclasses import asdict
 from datetime import datetime
 from importlib.metadata import PackageNotFoundError, version
 import json
-import math
 import os
 from pathlib import Path
 import time
@@ -19,7 +18,7 @@ from harness.runner import run_agent as run_harness
 
 from .artifacts import redact, summarize, write_json, write_results
 from .config import experiment_directory, load_function
-from .contracts import PreparedTask, Score, TrialContext
+from .contracts import PreparedTask, TrialContext, validate_score
 from .experiment import (
     apply_task_exclusions, archive_trial, completed_trial, experiment_lock,
     iter_trials, load_run, skip_trial, trial_directory,
@@ -58,15 +57,6 @@ def _versions() -> dict:
         except PackageNotFoundError:
             found[package] = None
     return found
-
-
-def _score(score: Score) -> None:
-    if not isinstance(score, Score):
-        raise TypeError("评分器必须返回 evaluation.Score")
-    value = score.reward
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 1:
-        raise ValueError("评分器奖励必须为 [0, 1] 范围内的有限数值")
-    json.dumps(score.metrics, allow_nan=False)
 
 
 async def run_evaluation(config: dict, *, tasks=None, prepare_task=None,
@@ -257,7 +247,7 @@ async def _run_trials(config, *, tasks, prepare_task, setup_environment,
                 print(f"  {trial_id}：评估结果", flush=True)
                 with _record_stage(row, stage, result_path, secret):
                     score = await evaluate(context, agent_result)
-                    _score(score)
+                    validate_score(score)
                     row.update(reward=float(score.reward), metrics=score.metrics,
                                passed=score.reward >= config["pass_threshold"])
             except BaseException as exc:

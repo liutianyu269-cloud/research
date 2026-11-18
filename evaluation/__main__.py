@@ -18,10 +18,18 @@ def main() -> int:
     parser.add_argument("--agent", type=Path, required=True, help="Agent 与模型 TOML 文件")
     parser.add_argument("--evaluation", type=Path, required=True, help="测试条件与评分 TOML 文件")
     parser.add_argument("--name", required=True, help="实验名称，支持中文；续跑时使用原名称")
-    parser.add_argument("--plan", action="store_true", help="仅读取配置和任务，不调用模型或启动 Docker")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--plan", action="store_true", help="仅读取配置和任务，不调用模型或启动 Docker")
+    mode.add_argument("--preflight", action="store_true", help="不调用模型，检查任务环境和原生评分器")
+    mode.add_argument("--rescore-from", type=Path, metavar="TRIAL_DIR",
+                      help="不调用模型，用旧试验的产物重新运行原生评分")
     parser.add_argument("--resume", action="store_true", help="续跑同名实验，归档忽略项并补抽，跳过已完成和 agent 超时项，重跑其余未完成项")
     parser.add_argument("--task", nargs="+", help="覆盖 dataset.task_ids")
     args = parser.parse_args()
+    if args.resume and (args.preflight or args.rescore_from is not None):
+        parser.error("--preflight、--rescore-from 不能与 --resume 同用")
+    if args.rescore_from is not None and args.task is not None:
+        parser.error("--rescore-from 使用原试验的题目，不能与 --task 同用")
     config = load_config(
         dataset=args.dataset, environment=args.environment, agent=args.agent,
         evaluation=args.evaluation, name=args.name,
@@ -64,6 +72,15 @@ def main() -> int:
             "environment_factory": config["environment"]["factory"],
         }, ensure_ascii=False, indent=2))
         return 0
+    if args.preflight or args.rescore_from is not None:
+        from .checks import run_artifact_checks
+
+        try:
+            report, success = asyncio.run(run_artifact_checks(config, source_trial=args.rescore_from))
+        except (ValueError, OSError) as exc:
+            parser.exit(1, f"无法开始检查：{exc}\n")
+        print(f"检查报告：{report}")
+        return 0 if success else 1
     # 遵循现有 harness 约定，环境变量中的值优先。
     from dotenv import load_dotenv
     from .runner import run_evaluation

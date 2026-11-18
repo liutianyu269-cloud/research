@@ -144,9 +144,11 @@ def load_config(*, dataset: Path, environment: Path, agent: Path,
     if cost_tracking and not agent.get("recorder"):
         raise ValueError("启用 agent.cost_tracking 需要配置 agent.recorder")
     evaluator = config.setdefault("evaluator", {})
-    if extra := evaluator.keys() - {"function"}:
+    if extra := evaluator.keys() - {"function", "artifact_replay"}:
         raise ValueError(f"未知评分器配置项：{sorted(extra)}")
     function_reference(evaluator.get("function"), "evaluator.function")
+    if "artifact_replay" in evaluator:
+        function_reference(evaluator["artifact_replay"], "evaluator.artifact_replay")
     environment = config.setdefault("environment", {})
     function_reference(environment.get("factory"), "environment.factory")
     return config
