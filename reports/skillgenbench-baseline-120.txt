@@ -1,0 +1,100 @@
+SkillGenBench 无 Skill 基线实验结果
+刘添予
+
+实验 liutianyu-sgb-matrix-r1。上游 SkillGenBench 固定于
+5a8bd61d8191e34fa1bbbffbff7f70db1d2a027d。research 正式矩阵代码为 40e5953。
+同一批 10 道符合接入条件的代码仓库任务，每个配置、每道题重复三次。
+这批题经过工程筛选，覆盖 PDF、Excel、图像、生理信号和视频。
+整轮使用无 Skill 条件，结论的适用范围为这批题和这四个配置。
+
+一、结果
+
+模型                 Harness     通过/有原生评分/计划   原生通过率   平均 token（样本数）   平均耗时
+DeepSeek Flash       OpenHands   6/28/30               21.4%        200889（29）          98.4 秒
+DeepSeek Flash       dsh         7/22/30               31.8%        144493（20）         112.8 秒
+qwen3.8-max-0902       OpenHands   0/14/30                0.0%        149196（29）         262.5 秒
+qwen3.8-max-0902       dsh         0/9/30                 0.0%        149764（14）         276.1 秒
+
+四组共完成 120 次，120 份 trace 和 120 份用量日志均已核对。
+原生评分返回 73 次，通过 13 次。另有 35 次 Agent 超时、12 次其他 Agent 错误，均未取得评分。
+耗时覆盖准备、作答、评分和清理，分母为每组 30 次。平均 token 的分母只含有可用总量的试验。
+总量优先使用 trace 汇总的 total_tokens，缺省时使用已记录的输入量与输出量之和。
+按同一模型、同题、同轮配对，OpenHands 和 dsh 两边都有原生评分的试验数为 DeepSeek 22、千问 7。
+四组实际使用 OpenHands SDK 1.53.0、dsh SDK 0.1.5rc1 和 BenchFlow 0.7.8。
+两种 harness 的 Agent 预算均设置为 300 秒，OpenHands 另配 15 轮上限。
+两种 harness 的原生停止机制及模型可见工具存在差异，配对结果需要结合这些差异和缺评分情况解读。
+
+试验题单（每道计划 12 次）。末列为通过/有原生评分。
+PyPDF2_gtb03      PDF 元数据                                      0/7
+Eparse_gtb01      Excel 文件及工作表文本报告                      1/6
+Eparse_gtb02      Excel 单元格逐行 JSONL                          0/9
+Pillow_gen01      HSV 范围二值掩膜                                6/8
+ScikitImage_gen05 连通区域着色                                    0/9
+ScikitImage_gen06 Otsu 二值掩膜                                   0/12
+NeuroKit_gtb01    皮肤电信号统计                                  0/2
+NeuroKit_gtb02    心电 R 峰与 P 峰                                0/12
+NeuroKit_gtb03    眼电信号题面要求的速率和峰值指标                0/2
+MoviePy_gen01     加黑边的等比例视频缩放                          6/6
+
+二、跨任务问题
+
+以下次数按出现该现象的 trial 去重，一次 trial 可包含多种现象。题数按不同任务 ID 统计。
+
+1. 超时缺评分 35 次，涉及 8 题。千问 31/60、DeepSeek 4/60。
+   例如 NeuroKit_gtb03 的 DeepSeek+dsh 第 1 轮，以及 Eparse_gtb01 的千问+dsh 第 2 轮。
+   依据是 result.json 的 failure_type=agent_timeout。超时只定位到作答环节，具体耗时还要看 trace。
+2. 轮次达到上限 13 次，涉及 8 题。都由 OpenHands 记录为 max_iterations。
+   DeepSeek+OpenHands 的 Eparse_gtb01 和 NeuroKit_gtb01 第 1 轮为例。
+   到轮次上限和获得原生评分可以同时发生。
+3. 导入错误 17 次，涉及 6 题。检查标准 trace 的 tool.result 中出现的 ModuleNotFoundError/ImportError。
+   例如 DeepSeek+dsh 的 Eparse_gtb01 和 NeuroKit_gtb01 第 3 轮。PDF 元数据题占 10 次。
+   该统计包含后来可能恢复的试验，应单独检查是否最终提交。
+4. 工具参数校验错误 7 次，涉及 5 题。都出现在千问+OpenHands 的原生事件日志。
+   可复查 Eparse_gtb01 第 1 轮和 MoviePy_gen01 第 3 轮的 agent/events.jsonl 内的参数校验错误。
+   日志定位到模型生成参数与工具接口的交界，独立归因需要更多对照。
+5. 未找到指定产物导致原生零分 8 次，涉及 5 题。DeepSeek+OpenHands 的 Eparse_gtb01
+   和 NeuroKit_gtb01 第 1 轮均可在 verifier/benchmark_result.jsonl 复核。先检查有没有写文件，再查路径和文件名。
+6. 产物与参考不匹配 22 次，涉及 4 题。这个计数排除下节三道已标记的评分异常题。
+   DeepSeek 两种 harness 的 PDF 元数据首轮能匹配三个参考字段的值，但产物键数分别为 14 和 18。
+   NeuroKit_gtb02 的 12 条原生评分都报告 CSV 比较未通过。这几道题的具体不匹配项需要逐次对照产物。
+
+正反例可用 Pillow_gen01 和 MoviePy_gen01。DeepSeek 两种 harness 在这两道任务上各有三次通过。
+MoviePy 的两组千问同样各运行三次，六次均超时。这个同题结果适合讨论当前预算下的执行差异。
+
+三、原生评分异常与框架问题
+
+保留原来的分数，三道题涉及 30 条原生零分。它们已经跨配置重复出现。
+Eparse_gtb02（9 条）要求 JSON Lines。参考件有 60 条逐行 JSON 对象，评分器却按单个 JSON 文档解析。
+ScikitImage_gen05（9 条）的 PNG 位于题面指定的子目录，测试入口让评分器只搜索父目录直接文件。
+ScikitImage_gen06（12 条）按标准 Otsu 对原始图像计算出的前景比例为 1.17%，评分脚本还有 5% 下限。
+事后排除这三题的敏感性结果，按表顺序为 6/19、7/13、0/6、0/5。
+原始表和调整口径分别报告。两种统计仍受不同配置缺评分比例的影响。
+
+已处理的框架问题包括 Windows 检出的评分 shell 副本换行、只配置任务时不能检查真实 Docker 和原生评分链、
+缺少历史文件单独重评入口，以及 dsh 缓存命中输入在账本归一时被漏算。对应代码见 datasets/skillgenbench.py、
+evaluation/checks.py 和 llm/src/research_llm/traces.py。一个 DeepSeek+dsh 首轮在 SDK 传输层关闭，
+记录为 TransportClosedError，该次没有可归属的模型调用。
+评分预检目前可以确认空输出得到原生诊断。下一步值得补上按题可重复的正样例，
+以及能区分评分器错误、上游输入/参考异常和不合格产物的结构化失败字段。
+
+四、复现与费用
+
+在同一工作区放置 research 和上述上游版本的 SkillGenBench checkout。下载至少题单中各题及对应公开资料。
+进入 research，用已配置的 Python 环境打包。下面这条命令创建新资源包，保持旧实验资源包独立。
+
+python -m tools.prepare_skillgenbench --source ../SkillGenBench --destination data/skillgenbench-matrix --task-ids PyPDF2_gtb03 Eparse_gtb01 Eparse_gtb02 Pillow_gen01 ScikitImage_gen05 ScikitImage_gen06 NeuroKit_gtb01 NeuroKit_gtb02 NeuroKit_gtb03 MoviePy_gen01
+
+在有 Linux Docker 引擎和已准备 dsh profile 的环境里运行。下例只预览 DeepSeek+OpenHands 配置。
+
+python -m evaluation --dataset config/datasets/skillgenbench-matrix.toml --environment config/environments/skillgenbench.toml --agent config/agents/openhands-skillgenbench.toml --evaluation config/evaluation/skillgenbench-matrix.toml --name baseline-reproduction --plan
+
+相同参数加 --preflight 可以不调用模型验证容器和原生评分链。另三组仅替换 --agent 所指文件，
+文件名为 openhands-skillgenbench-qwen.toml、dsh-skillgenbench-deepseek.toml 和 dsh-skillgenbench-qwen.toml。
+正式执行不加预览参数，需要本机配置 Thingo 模型凭据和账本归属，并会产生费用。
+正常中断后可以用原实验名与 --resume --keep-failed 续跑，保留已结束失败记录。
+
+实际记录根目录为 logs/exp/skillgenbench/<harness>/<模型目录>/liutianyu-sgb-matrix-r1。
+各组保存 manifest.json、results.jsonl 和按题目、条件、轮次区分的 trials。
+费用走 research_llm 账本和 trace 导入。共记录 1398 次模型调用，账本可计价约 49.50 元，
+其中 54 次未能计价。费用归属和金额以平台账单及报销审核为准。
+逐次 token、耗时、状态、原生分数和证据路径可在本地 Excel 实验表检查。
