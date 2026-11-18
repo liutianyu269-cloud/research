@@ -34,8 +34,10 @@ def completed_trial(result: dict | None) -> bool:
             and math.isfinite(reward) and 0 <= reward <= 1)
 
 
-def skip_trial(result: dict | None) -> bool:
+def skip_trial(result: dict | None, *, keep_failed: bool = False) -> bool:
     """续跑保留已有合法评分及已耗尽 agent 时间预算的最终记录。"""
+    if keep_failed and result and result.get("status") in {"error", "completed", "cancelled"}:
+        return True
     return completed_trial(result) or bool(
         result and result.get("status") in {"error", "completed", "cancelled"}
         and trial_failure_type(result) == "agent_timeout"

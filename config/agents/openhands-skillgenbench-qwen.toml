@@ -1,0 +1,18 @@
+[model]
+model = "openai/qwen3.8-max-0902"
+base_url = "https://uniapi.thingo.com.cn/v1"
+api_key_env = "THINGO_QWEN_API_KEY"
+api_mode = "chat"
+timeout = 60
+num_retries = 0
+max_output_tokens = 2048
+
+[agent]
+runner = "harness.openhands.runner:execute"
+recorder = "agent_session_analyzer:OpenHandsRecorder"
+cost_tracking = true
+max_iterations = 15
+timeout_sec = 300
+tool_timeout_sec = 60
+max_output_chars = 20000
+tools = ["terminal", "think", "finish"]

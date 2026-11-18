@@ -1,0 +1,16 @@
+[model]
+provider = "deepseek-official"
+model = "qwen3.8-max-0902"
+base_url = "https://uniapi.thingo.com.cn/v1"
+api_key_env = "THINGO_QWEN_API_KEY"
+max_tokens = 2048
+
+[agent]
+runner = "harness.dsh.runner:execute"
+recorder = "agent_session_analyzer:DshRecorder"
+cost_tracking = true
+profile = "sdk-minimal"
+timeout_sec = 300
+tool_timeout_sec = 60
+max_output_chars = 20000
+tools = ["terminal"]

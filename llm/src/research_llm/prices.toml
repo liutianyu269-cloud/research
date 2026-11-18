@@ -16,4 +16,5 @@ currency = "CNY"
 input = "12"
 output = "36"
 cache_read = "1"
-aliases = ["openai/qwen-3.8-max", "qwen-3.8", "openai/qwen-3.8"]
+aliases = ["openai/qwen-3.8-max", "qwen-3.8", "openai/qwen-3.8",
+           "qwen3.8-max-0902", "openai/qwen3.8-max-0902"]

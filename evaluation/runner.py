@@ -61,7 +61,8 @@ def _versions() -> dict:
 
 async def run_evaluation(config: dict, *, tasks=None, prepare_task=None,
                          setup_environment=None, run_agent=None, evaluate=None,
-                         create_environment=None, resume: bool = False) -> Path:
+                         create_environment=None, resume: bool = False,
+                         limit_new_trials: int | None = None, keep_failed: bool = False) -> Path:
     """通过传入函数或配置 module:function 替换任意组件。
 
     数据集：load(index, ids) -> list[Task]；prepare(task, destination, condition)
@@ -77,18 +78,19 @@ async def run_evaluation(config: dict, *, tasks=None, prepare_task=None,
             config, tasks=tasks, prepare_task=prepare_task,
             setup_environment=setup_environment, run_agent=run_agent, evaluate=evaluate,
             create_environment=create_environment, resume=resume,
+            limit_new_trials=limit_new_trials, keep_failed=keep_failed,
         )
 
 
 async def _run_trials(config, *, tasks, prepare_task, setup_environment,
-                      run_agent, evaluate, create_environment, resume):
+                      run_agent, evaluate, create_environment, resume, limit_new_trials, keep_failed):
     output = experiment_directory(config)
     dataset = config["dataset"]
     tasks, previous_manifest, rows = load_run(config, resume=resume, tasks=tasks)
     conditions, repeats = config["conditions"], config["repeats"]
     entries = list(iter_trials(tasks, conditions, repeats))
     total = len(entries)
-    skipped = sum(skip_trial(row) for row in rows.values())
+    skipped = sum(skip_trial(row, keep_failed=keep_failed) for row in rows.values())
     print(f"实验目录：{output}\n计划试验数：{total}，跳过：{skipped}，待运行：{total - skipped}", flush=True)
     if resume and skipped == total:
         apply_task_exclusions(config, previous_manifest, tasks)
@@ -159,12 +161,16 @@ async def _run_trials(config, *, tasks, prepare_task, setup_environment,
     write_results(output / "results.jsonl", list(rows.values()))
     write_json(output / "summary.json", summarize(list(rows.values()), conditions, len(tasks), repeats))
 
+    started_trials = 0
     try:
         for trial_number, (task, condition, repeat, trial_id) in enumerate(entries, 1):
-            if skip_trial(rows.get(trial_id)):
-                reason = "已完成" if completed_trial(rows[trial_id]) else "agent 已超时，不重跑"
+            if skip_trial(rows.get(trial_id), keep_failed=keep_failed):
+                reason = "已完成" if completed_trial(rows[trial_id]) else "保留已有失败记录"
                 print(f"[{trial_number}/{total}] {trial_id}：{reason}，跳过", flush=True)
                 continue
+            if limit_new_trials is not None and started_trials >= limit_new_trials:
+                break
+            started_trials += 1
             if resume:
                 archived = archive_trial(output, trial_id)
                 if archived is not None:

@@ -10,6 +10,21 @@ from pathlib import Path
 from .accounting import UsageRecorder, usage_fields
 
 
+def normalize_trace_usage(harness: str, usage):
+    """把 dsh 单独列出的缓存命中 token 还原到含缓存的输入总量。"""
+    if harness != "dsh" or not isinstance(usage, dict):
+        return usage
+    fields = ("input_tokens", "output_tokens", "total_tokens", "cache_read_tokens")
+    counts = [usage.get(field) for field in fields]
+    if not all(type(count) is int and count >= 0 for count in counts):
+        return usage
+    input_tokens, output_tokens, total_tokens, cached_tokens = counts
+    if (cached_tokens and usage.get("cache_write_tokens") in (None, 0)
+            and total_tokens == input_tokens + output_tokens + cached_tokens):
+        return {**usage, "input_tokens": input_tokens + cached_tokens}
+    return usage
+
+
 def summarize_calls(rows: list[dict]) -> dict:
     totals = {}
     for row in rows:
@@ -75,7 +90,8 @@ def import_traces(recorder: UsageRecorder, paths, *, model: str, api_key_env: st
                 error = data.get("error")
                 row = recorder.record_usage(
                     model=observed_model, api_key_env=safe(api_key_env), base_url=base_url,
-                    usage=usage_fields(data.get("usage")), status=status, source_status=source_status,
+                    usage=usage_fields(normalize_trace_usage(event.get("harness"), data.get("usage"))),
+                    status=status, source_status=source_status,
                     source=event.get("harness") or "trace", call_id=call_id,
                     started_at=timestamp, finished_at=timestamp, time_source=time_source,
                     response_model=observed_model, response_id=safe(data.get("response_id")),

@@ -14,6 +14,7 @@ from evaluation.contracts import AgentResult, PreparedTask, Score, Task, TrialCo
 
 TASK_FORMAT = "research-skillgenbench-v1"
 UPSTREAM_REVISION = "5a8bd61d8191e34fa1bbbffbff7f70db1d2a027d"
+MATRIX_PACKAGE_VERSION = "5a8bd61d81-code-repo-matrix-r1"
 
 
 @dataclass(frozen=True)
@@ -24,14 +25,34 @@ class TaskProfile:
     imports: str
 
 
+_EPARSE = TaskProfile("eparse", "eparse", ("eparse==0.9.2",), "import eparse.core")
+_NEUROKIT = TaskProfile("neurokit", "neurokit2", ("neurokit2==0.2.12", "numpy==2.2.6"),
+                       "import neurokit2, numpy, pandas")
+_SCIKIT_IMAGE = TaskProfile("scikitimage", "scikit-image", ("scikit-image==0.25.2", "numpy==2.2.6"),
+                           "import skimage, numpy, PIL")
+
+
 TASK_PROFILES = {
     "PyPDF2_gtb03": TaskProfile("pypdf2", "pypdf-minimal", ("pypdf==5.5.0",), "import pypdf"),
     "PyPDF2_gen01": TaskProfile("pypdf2", "pypdf-page-range",
                                 ("pypdf==5.5.0", "PyPDF2==3.0.1"), "import pypdf, PyPDF2"),
     "SoundFile_gen03": TaskProfile("soundfile", "soundfile-mono",
                                    ("soundfile==0.13.1", "numpy==2.2.6"), "import soundfile, numpy"),
+    "Eparse_gtb01": _EPARSE,
+    "Eparse_gtb02": _EPARSE,
+    "Pillow_gen01": TaskProfile("pillow", "pillow", ("Pillow==11.3.0", "numpy==2.2.6"),
+                                "import PIL.Image, numpy"),
+    "ScikitImage_gen05": _SCIKIT_IMAGE,
+    "ScikitImage_gen06": _SCIKIT_IMAGE,
+    "NeuroKit_gtb01": _NEUROKIT,
+    "NeuroKit_gtb02": _NEUROKIT,
+    "NeuroKit_gtb03": _NEUROKIT,
+    "MoviePy_gen01": TaskProfile("moviepy", "moviepy",
+                                 ("moviepy==2.2.1", "opencv-python-headless==4.12.0.88", "numpy==2.2.6"),
+                                 "import moviepy, cv2, numpy"),
 }
 DEFAULT_TASK_ID = "PyPDF2_gtb03"
+PILOT_TASK_IDS = frozenset((DEFAULT_TASK_ID, "PyPDF2_gen01", "SoundFile_gen03"))
 
 
 def check_grader(bundle: Path, upstream: dict) -> None:
@@ -40,11 +61,15 @@ def check_grader(bundle: Path, upstream: dict) -> None:
     runner = resource_path(bundle, upstream["validation"]["runner"])
     if runner != tests / "test.sh" or not runner.is_file():
         raise ValueError(f"不支持的 SkillGenBench 评分入口：{runner}")
-    context = resource_path(bundle, "context")
-    reference = resource_path(context, upstream["evaluation"]["reference_relpath"])
-    groundtruth = resource_path(bundle, upstream["context"]["groundtruth_dir"])
-    if not reference.is_relative_to(groundtruth) or not reference.is_file():
-        raise ValueError(f"参考文件须位于 groundtruth 中：{reference}")
+    evaluation = upstream["evaluation"]
+    if evaluation["reference_relpath"]:
+        context = resource_path(bundle, "context")
+        reference = resource_path(context, evaluation["reference_relpath"])
+        groundtruth = resource_path(bundle, upstream["context"]["groundtruth_dir"])
+        if not reference.is_relative_to(groundtruth) or not reference.is_file():
+            raise ValueError(f"参考文件须位于 groundtruth 中：{reference}")
+    elif evaluation["type"] != "heuristic":
+        raise ValueError("该评分类型缺少参考文件")
     for script in tests.rglob("*.py"):
         try:
             compile(script.read_bytes(), str(script), "exec")
@@ -126,6 +151,9 @@ def prepare_task(task: Task, destination: Path, condition: str) -> PreparedTask:
         raise ValueError("当前预跑仅支持 no-skill 工程条件")
     _check_sources(task)
     destination = Path(destination).resolve()
+    if task.source["package_identity"]["version"] == MATRIX_PACKAGE_VERSION:
+        # BenchFlow 以任务目录名标记镜像。不同题的依赖镜像不能共用一个 tag。
+        destination /= f"skillgenbench-{task.id.lower()}"
     destination.mkdir(parents=True)
     bundle = Path(task.source["bundle"])
     source_config = task.metadata["upstream"]
@@ -135,8 +163,9 @@ def prepare_task(task: Task, destination: Path, condition: str) -> PreparedTask:
     # 评分资料只存在宿主的独立副本中，不进入镜像构建上下文或作答输入。
     grading_dir = destination / "grading"
     shutil.copytree(resource_path(bundle, source_config["validation"]["tests_dir"]), grading_dir / "tests")
-    shutil.copytree(resource_path(bundle, source_config["context"]["groundtruth_dir"]),
-                    grading_dir / "groundtruth")
+    groundtruth = source_config["context"].get("groundtruth_dir")
+    if groundtruth:
+        shutil.copytree(resource_path(bundle, groundtruth), grading_dir / "groundtruth")
     # Windows 检出源码后再由 Linux 上传时，BenchFlow 不会替我们转换 CRLF。
     for script in (grading_dir / "tests").rglob("*.sh"):
         script.write_bytes(script.read_bytes().replace(b"\r\n", b"\n"))
@@ -258,7 +287,9 @@ async def _evaluate_artifacts(context: TrialContext) -> Score:
     created = await environment.execute(["mkdir", "-p", "/workspace/data"])
     if not created.success:
         raise EnvironmentError(f"准备评分目录失败：{created.stdout} {created.stderr}")
-    await environment.upload(grading_dir / "groundtruth", "/workspace/data/groundtruth")
+    groundtruth = grading_dir / "groundtruth"
+    if groundtruth.is_dir():
+        await environment.upload(groundtruth, "/workspace/data/groundtruth")
     rewards = await environment.verify()
     result_file = context.output_dir / "verifier" / "benchmark_result.jsonl"
     lines = [line for line in result_file.read_text(encoding="utf-8").splitlines() if line.strip()]

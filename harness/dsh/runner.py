@@ -12,6 +12,7 @@ from uuid import uuid4
 from harness.base import AgentResult, task_prompt
 from harness.diagnostics import RunDiagnostics
 from harness.dsh.console import DshConsole
+from research_llm.traces import normalize_trace_usage
 from tools.loader import REGISTRY_TOOLS, load_tools, validate_tools
 from utils.json_io import append_jsonl, redact, write_json
 
@@ -22,7 +23,8 @@ def _trace_metrics(path: Path) -> tuple[int, dict]:
         for line in stream:
             row = json.loads(line)
             if row.get("event") == "model.attempt":
-                attempts.append(row["data"].get("usage") or {})
+                usage = normalize_trace_usage("dsh", row["data"].get("usage"))
+                attempts.append(usage or {})
             elif row.get("event") == "tool.call":
                 calls[row["data"].get("name", "unknown")] += 1
     usage = {}

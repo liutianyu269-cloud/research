@@ -1,0 +1,8 @@
+[dataset]
+package = "../../data/skillgenbench-matrix"
+task_ids = ["PyPDF2_gtb03", "Eparse_gtb01", "Eparse_gtb02", "Pillow_gen01",
+            "ScikitImage_gen05", "ScikitImage_gen06", "NeuroKit_gtb01",
+            "NeuroKit_gtb02", "NeuroKit_gtb03", "MoviePy_gen01"]
+loader = "datasets.skillgenbench:load_tasks"
+prepare = "datasets.skillgenbench:prepare_task"
+setup = "datasets.skillgenbench:setup_environment"

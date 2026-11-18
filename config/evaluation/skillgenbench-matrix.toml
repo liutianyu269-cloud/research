@@ -1,0 +1,8 @@
+output_dir = "../../logs/exp"
+conditions = ["no-skill"]
+repeats = 3
+pass_threshold = 1.0
+
+[evaluator]
+function = "datasets.skillgenbench:evaluate"
+artifact_replay = "datasets.skillgenbench:replay_artifact"

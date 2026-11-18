@@ -8,7 +8,10 @@ import subprocess
 from tempfile import TemporaryDirectory
 
 from datasets.package import resource_path
-from datasets.skillgenbench import DEFAULT_TASK_ID, TASK_FORMAT, TASK_PROFILES, UPSTREAM_REVISION, _snapshot, load_tasks
+from datasets.skillgenbench import (
+    DEFAULT_TASK_ID, MATRIX_PACKAGE_VERSION, PILOT_TASK_IDS, TASK_FORMAT, TASK_PROFILES,
+    UPSTREAM_REVISION, _snapshot, load_tasks,
+)
 
 
 def build_package(source: Path, destination: Path, task_ids: list[str] | None = None) -> Path:
@@ -29,6 +32,7 @@ def build_package(source: Path, destination: Path, task_ids: list[str] | None = 
     task_ids = [DEFAULT_TASK_ID] if legacy else task_ids
     if not task_ids or len(set(task_ids)) != len(task_ids) or set(task_ids) - TASK_PROFILES.keys():
         raise ValueError(f"请选择不重复的已支持任务：{', '.join(TASK_PROFILES)}")
+    matrix = bool(set(task_ids) - PILOT_TASK_IDS)
     destination.parent.mkdir(parents=True, exist_ok=True)
     # 同一父目录构建成功后再改名；出错仅清理脚本自己创建的临时目录。
     with TemporaryDirectory(prefix=".skillgenbench-package-", dir=destination.parent) as temporary:
@@ -46,13 +50,16 @@ def build_package(source: Path, destination: Path, task_ids: list[str] | None = 
             for key, value in task_sources.items():
                 directory = resource_path(source, value, must_exist=key == "bundle")
                 if key == "docs" and not directory.exists():
-                    if repo != "soundfile":
+                    if not matrix and repo != "soundfile":
                         raise FileNotFoundError(f"请先检出公开文档：{directory}")
-                    # 固定版本的 SoundFile_gen03 没有公开文档目录。
-                    (package / row[key]).mkdir(parents=True)
-                    row[f"{key}_sha256"] = {}
-                    task_sources[key] = None
-                    continue
+                    task_docs = f"{task_sources['bundle']}/context/docs"
+                    directory = resource_path(source, task_docs, must_exist=False)
+                    if not directory.exists():
+                        (package / row[key]).mkdir(parents=True)
+                        row[f"{key}_sha256"] = {}
+                        task_sources[key] = None
+                        continue
+                    task_sources[key] = task_docs
                 hashes = _snapshot(directory)
                 shutil.copytree(directory, package / row[key])
                 if _snapshot(directory) != hashes or _snapshot(package / row[key]) != hashes:
@@ -61,11 +68,13 @@ def build_package(source: Path, destination: Path, task_ids: list[str] | None = 
             rows.append(row)
             sources[task_id] = task_sources
         metadata = {
-            "schema_version": 1, "id": "skillgenbench", "version": "5a8bd61d81-small-pilot-r2",
+            "schema_version": 1, "id": "skillgenbench",
+            "version": MATRIX_PACKAGE_VERSION if matrix else "5a8bd61d81-small-pilot-r2",
             "task_format": TASK_FORMAT,
             "provenance": {"repository": "https://github.com/QuantaAlpha/SkillGenBench",
                            "revision": revision, "source_paths": sources,
-                           "scope": "Selected no-skill engineering pilot tasks"},
+                           "scope": ("Screened code-repository task sample, no-skill condition"
+                                     if matrix else "Selected no-skill engineering pilot tasks")},
         }
         if legacy:
             # 保留历史单题包的描述与索引身份，兼容既有实验复现。

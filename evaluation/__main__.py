@@ -24,8 +24,15 @@ def main() -> int:
     mode.add_argument("--rescore-from", type=Path, metavar="TRIAL_DIR",
                       help="不调用模型，用旧试验的产物重新运行原生评分")
     parser.add_argument("--resume", action="store_true", help="续跑同名实验，归档忽略项并补抽，跳过已完成和 agent 超时项，重跑其余未完成项")
+    parser.add_argument("--limit-new-trials", type=int, metavar="N", help="最多启动 N 次新试验，剩余试验可续跑")
+    parser.add_argument("--keep-failed", action="store_true", help="续跑时也保留已经结束的失败试验")
     parser.add_argument("--task", nargs="+", help="覆盖 dataset.task_ids")
     args = parser.parse_args()
+    if args.limit_new_trials is not None and (args.limit_new_trials < 1 or args.plan or args.preflight
+                                             or args.rescore_from is not None):
+        parser.error("--limit-new-trials 须为正整数，只能用于执行试验")
+    if args.keep_failed and not args.resume:
+        parser.error("--keep-failed 需要与 --resume 同用")
     if args.resume and (args.preflight or args.rescore_from is not None):
         parser.error("--preflight、--rescore-from 不能与 --resume 同用")
     if args.rescore_from is not None and args.task is not None:
@@ -42,7 +49,7 @@ def main() -> int:
     if args.plan:
         tasks, manifest, results = load_run(config, resume=args.resume)
         pending = [trial_id for _, _, _, trial_id in iter_trials(tasks, config["conditions"], config["repeats"])
-                   if not skip_trial(results.get(trial_id))]
+                   if not skip_trial(results.get(trial_id), keep_failed=args.keep_failed)]
         saved_ids = {task["id"] for task in manifest["tasks"]} if manifest is not None else set()
         replacements = [task.id for task in tasks if task.id not in saved_ids] if args.resume else []
         print(json.dumps({
@@ -56,7 +63,7 @@ def main() -> int:
             "replacement_task_ids": replacements,
             "ignored_trial_ids_to_archive": [trial_id for trial_id, _ in ignored_trial_directories(config, manifest)],
             "ignored_trials_dir": str(output / "ignored_trials"),
-            "skipped_trials": sum(skip_trial(row) for row in results.values()),
+            "skipped_trials": sum(skip_trial(row, keep_failed=args.keep_failed) for row in results.values()),
             "skipped_agent_timeout_trial_ids": [trial_id for trial_id, row in results.items()
                                                 if skip_trial(row) and not completed_trial(row)],
             "pending_trials": len(pending), "pending_trial_ids": pending,
@@ -86,7 +93,9 @@ def main() -> int:
     from .runner import run_evaluation
 
     load_dotenv(Path.cwd() / ".env", override=False)
-    output = asyncio.run(run_evaluation(config, resume=args.resume))
+    output = asyncio.run(run_evaluation(
+        config, resume=args.resume, limit_new_trials=args.limit_new_trials, keep_failed=args.keep_failed,
+    ))
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     return 0 if manifest["status"] == "completed" else 1
 
