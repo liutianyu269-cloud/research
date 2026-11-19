@@ -1,6 +1,14 @@
 SkillGenBench 无 Skill 基线实验结果
 刘添予
 
+交付文件与复核
+
+- skillgenbench-six-questions.docx 是六问回答原文。
+- skillgenbench-baseline-120.xlsx 是实验汇总和 120 次逐次记录。
+- skillgenbench-trial-index.csv 按模型、harness、任务和轮次索引 120 次试验。
+  索引记录原生分数、耗时、token 和评分复查标记，以及 trace 与用量明细的相对路径和 SHA-256。
+  原始 trace 和用量明细保留在实验工作区，可按索引核对文件并通过私下渠道提供复核或报销。
+
 实验 liutianyu-sgb-matrix-r1。上游 SkillGenBench 固定于
 5a8bd61d8191e34fa1bbbffbff7f70db1d2a027d。research 正式矩阵代码为 40e5953。
 同一批 10 道符合接入条件的代码仓库任务，每个配置、每道题重复三次。
