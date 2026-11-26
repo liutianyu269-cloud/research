@@ -1,0 +1,108 @@
+{
+  "id": "b07c39a8-8dd3-436e-9afd-0595a0a33a2f",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/PyPDF2_gtb03",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/b07c39a8-8dd3-436e-9afd-0595a0a33a2f",
+  "workflow": {
+    "dataset": "skillgenbench",
+    "caseId": "PyPDF2_gtb03",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "parse-pdf",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "pdf-inspect",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-metadata-json",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "parse-pdf",
+      "status": "passed",
+      "elapsedMs": 314,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/parse-pdf",
+      "generation": 1,
+      "inputDirectory": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-1/trials/PyPDF2_gtb03__with-skill__001/task/skillgenbench-pypdf2_gtb03/context/input",
+      "outputType": "PDF 文档",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/b07c39a8-8dd3-436e-9afd-0595a0a33a2f/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 111,
+          "sha256": "7122cc98693077d250ef7099acf249e89ca0174dfe50a76131f49b86303a15b1"
+        },
+        {
+          "path": "PyPDF2_gtb03_input.pdf",
+          "bytes": 135714,
+          "sha256": "ac57aaba2a4dd311522a7b8452d7f5ebfae4181bbe34ad5390224249e556ae96"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "pdf-inspect",
+      "status": "passed",
+      "elapsedMs": 397,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pdf-inspect",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/b07c39a8-8dd3-436e-9afd-0595a0a33a2f/node-inspect/output",
+      "outputType": "JSON",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/b07c39a8-8dd3-436e-9afd-0595a0a33a2f/node-process/output",
+      "artifacts": [
+        {
+          "path": "pdf_metadata.json",
+          "bytes": 208,
+          "sha256": "27412a23f417f11196d1e21c180243ea83ca94241730a83af3e11e586311266c"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-metadata-json",
+      "status": "passed",
+      "elapsedMs": 261,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-metadata-json",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/b07c39a8-8dd3-436e-9afd-0595a0a33a2f/node-process/output",
+      "outputType": "JSON",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/b07c39a8-8dd3-436e-9afd-0595a0a33a2f/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 68,
+          "sha256": "5b0f1e0f6f1410bfb9a1a98c4c2fb84e6728d3db1cb085c04808b57bf01f1f27"
+        },
+        {
+          "path": "pdf_metadata.json",
+          "bytes": 208,
+          "sha256": "27412a23f417f11196d1e21c180243ea83ca94241730a83af3e11e586311266c"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+diff --git a/app/liutianyu-skill-lab/workflow/workbench.tsx b/app/liutianyu-skill-lab/workflow/workbench.tsx
+--- a/app/liutianyu-skill-lab/workflow/workbench.tsx
++++ b/app/liutianyu-skill-lab/workflow/workbench.tsx
+@@ -27,7 +27,7 @@
+   flowId: string | null; generation: number;
+   artifacts: Artifact[]; error: string | null;
+ };
+-type Run = { id: string; status: "passed" | "failed"; directory: string; nodes: NodeTrace[] };
++type Run = { id: string; flowId?: string; status: "passed" | "failed"; directory: string; nodes: NodeTrace[] };
+ type Action = "register" | "revoke" | "reload";
+ type Port = { key: string; label: string; type: string; binding: Binding };
+ 
+@@ -344,6 +344,7 @@
+             <span className={styles.pill} data-loaded={run.status === "passed"}>{run.status === "passed" ? "执行完成" : "执行中止"}</span>
+           </header>
+           <div className={styles.results}>
++            {run.flowId && <p className={styles.resultLocation}><span>组合流程 ID</span> <code>{run.flowId}</code></p>}
+             <p className={styles.resultLocation}><span>记录目录</span> <code>{run.directory}/run.json</code></p>
+             {run.nodes.map((node) => <details className={styles.trace} key={node.id} open>
+               <summary><strong>{catalog?.skills.find((skill) => skill.id === node.skillId)?.title ?? node.skillId}</strong>

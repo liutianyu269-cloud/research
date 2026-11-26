@@ -1,0 +1,288 @@
+{
+  "id": "c57852cb-a140-40e4-8b51-f9c2d30c44cb",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PyPDF2_02",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/c57852cb-a140-40e4-8b51-f9c2d30c44cb",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PyPDF2_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdf-pages",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "pypdf-page-operations",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pypdf2-02",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-pdf-pages",
+      "status": "passed",
+      "elapsedMs": 827,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-pdf-pages",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/PyPDF2_02",
+      "outputType": "PDF",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/c57852cb-a140-40e4-8b51-f9c2d30c44cb/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 114,
+          "sha256": "fd1078ca70d0678696f41e70d464d68826b33d9eb3cdc20451f4f3eb0f5269ec"
+        },
+        {
+          "path": "PyPDF2_02_input.pdf",
+          "bytes": 360285,
+          "sha256": "738c3bd4d56f3ffa5b88861c8c7b6b5c87ceee292fb9e6e8fa729c5f10288667"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "pypdf-page-operations",
+      "status": "passed",
+      "elapsedMs": 6846,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pypdf-page-operations",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/c57852cb-a140-40e4-8b51-f9c2d30c44cb/node-inspect/output",
+      "outputType": "单页 PDF 目录",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/c57852cb-a140-40e4-8b51-f9c2d30c44cb/node-process/output",
+      "artifacts": [
+        {
+          "path": "pages/page_1.pdf",
+          "bytes": 40681,
+          "sha256": "bcb54682c0ae2f2c438137a2f455e0fd87dce3042a7abfd46f57b242a4a27b0a"
+        },
+        {
+          "path": "pages/page_10.pdf",
+          "bytes": 137770,
+          "sha256": "ace688bda99fab10bce8076d2889dee22c67c1161c88869291e5b6a1aa9c0ba8"
+        },
+        {
+          "path": "pages/page_11.pdf",
+          "bytes": 133677,
+          "sha256": "f81d7f30870202d8ec17baa40265f786fca55af3934d2c6b7ab2ee78cec99d33"
+        },
+        {
+          "path": "pages/page_12.pdf",
+          "bytes": 136061,
+          "sha256": "b15c6ec1cef9d1b130778dee6ea0c3526927845c16bd070d554924d249ae97aa"
+        },
+        {
+          "path": "pages/page_13.pdf",
+          "bytes": 136362,
+          "sha256": "534e9e5b6e3f14a2c5fac928066653655c112ca79484e10f64c340ac236d2cc8"
+        },
+        {
+          "path": "pages/page_14.pdf",
+          "bytes": 137800,
+          "sha256": "c82551e0d4bd7001a482c9f820c183d0ad7f2c73a09fd47ba05d2bb7ed717a81"
+        },
+        {
+          "path": "pages/page_15.pdf",
+          "bytes": 75636,
+          "sha256": "9de6d3ff841974e5360aa03fe21df0feec432bf3fab3a549649d7d056843c4bd"
+        },
+        {
+          "path": "pages/page_16.pdf",
+          "bytes": 133968,
+          "sha256": "9965594228e3b59d538ceb87e9f9921a1fd031f319f210672177cb4e3ba16c8c"
+        },
+        {
+          "path": "pages/page_17.pdf",
+          "bytes": 134218,
+          "sha256": "7f8e564338f3df07fc2a630a9eac88e1de1e5226813004b97cd790a2cc9bb39b"
+        },
+        {
+          "path": "pages/page_18.pdf",
+          "bytes": 136412,
+          "sha256": "054002d2e65ae5dcdf2d4db143f7188695a629ef4c094a9073295328bd6f7396"
+        },
+        {
+          "path": "pages/page_19.pdf",
+          "bytes": 135446,
+          "sha256": "b19f2c8d2113a03d3944922b28b789f345ae469566a48306ef327b8af478632a"
+        },
+        {
+          "path": "pages/page_2.pdf",
+          "bytes": 4759,
+          "sha256": "e8c1a47c77f52f68d48ff13e6195d0584e280b0ebb0610d8c5d76422c2da5303"
+        },
+        {
+          "path": "pages/page_3.pdf",
+          "bytes": 84119,
+          "sha256": "da95d118abd460b5957331551669486a63e99ef5be28c9d9b733a730c4d45e3d"
+        },
+        {
+          "path": "pages/page_4.pdf",
+          "bytes": 255350,
+          "sha256": "07ff4d6d18a4f7bafbfd9f5f8533b39149f86d5a8f97df5fb045adb97c8be91f"
+        },
+        {
+          "path": "pages/page_5.pdf",
+          "bytes": 67766,
+          "sha256": "ba662b8dcbaae318c5a230b0cd0514b378c3e7d84a5f6aba377d6f92f301b351"
+        },
+        {
+          "path": "pages/page_6.pdf",
+          "bytes": 128886,
+          "sha256": "dddd858780696b28296b32cb324964861cda0c0067cf259b4e79c8c0b59b718e"
+        },
+        {
+          "path": "pages/page_7.pdf",
+          "bytes": 129859,
+          "sha256": "5cab8312374714df6b9269f08804f49fbce6657af18bff7b1e1733e10c6eac8d"
+        },
+        {
+          "path": "pages/page_8.pdf",
+          "bytes": 67591,
+          "sha256": "ede4f9cd6cb95fdddc967f747d89b57359e93d52063b93e6d35bfd159534d353"
+        },
+        {
+          "path": "pages/page_9.pdf",
+          "bytes": 88865,
+          "sha256": "bcf418deb8e1f039f28802f446b436f0972e7b97ba2f713306553fb08a48ecf9"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-pypdf2-02",
+      "status": "passed",
+      "elapsedMs": 1039,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-pypdf2-02",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/c57852cb-a140-40e4-8b51-f9c2d30c44cb/node-process/output",
+      "outputType": "单页 PDF 目录",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/c57852cb-a140-40e4-8b51-f9c2d30c44cb/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 27,
+          "sha256": "19fed2425b0ba8e92a3bfeaa5f1d4921557eeed99db7d37b6c4406a59cfe60d2"
+        },
+        {
+          "path": "pages/page_1.pdf",
+          "bytes": 40681,
+          "sha256": "bcb54682c0ae2f2c438137a2f455e0fd87dce3042a7abfd46f57b242a4a27b0a"
+        },
+        {
+          "path": "pages/page_10.pdf",
+          "bytes": 137770,
+          "sha256": "ace688bda99fab10bce8076d2889dee22c67c1161c88869291e5b6a1aa9c0ba8"
+        },
+        {
+          "path": "pages/page_11.pdf",
+          "bytes": 133677,
+          "sha256": "f81d7f30870202d8ec17baa40265f786fca55af3934d2c6b7ab2ee78cec99d33"
+        },
+        {
+          "path": "pages/page_12.pdf",
+          "bytes": 136061,
+          "sha256": "b15c6ec1cef9d1b130778dee6ea0c3526927845c16bd070d554924d249ae97aa"
+        },
+        {
+          "path": "pages/page_13.pdf",
+          "bytes": 136362,
+          "sha256": "534e9e5b6e3f14a2c5fac928066653655c112ca79484e10f64c340ac236d2cc8"
+        },
+        {
+          "path": "pages/page_14.pdf",
+          "bytes": 137800,
+          "sha256": "c82551e0d4bd7001a482c9f820c183d0ad7f2c73a09fd47ba05d2bb7ed717a81"
+        },
+        {
+          "path": "pages/page_15.pdf",
+          "bytes": 75636,
+          "sha256": "9de6d3ff841974e5360aa03fe21df0feec432bf3fab3a549649d7d056843c4bd"
+        },
+        {
+          "path": "pages/page_16.pdf",
+          "bytes": 133968,
+          "sha256": "9965594228e3b59d538ceb87e9f9921a1fd031f319f210672177cb4e3ba16c8c"
+        },
+        {
+          "path": "pages/page_17.pdf",
+          "bytes": 134218,
+          "sha256": "7f8e564338f3df07fc2a630a9eac88e1de1e5226813004b97cd790a2cc9bb39b"
+        },
+        {
+          "path": "pages/page_18.pdf",
+          "bytes": 136412,
+          "sha256": "054002d2e65ae5dcdf2d4db143f7188695a629ef4c094a9073295328bd6f7396"
+        },
+        {
+          "path": "pages/page_19.pdf",
+          "bytes": 135446,
+          "sha256": "b19f2c8d2113a03d3944922b28b789f345ae469566a48306ef327b8af478632a"
+        },
+        {
+          "path": "pages/page_2.pdf",
+          "bytes": 4759,
+          "sha256": "e8c1a47c77f52f68d48ff13e6195d0584e280b0ebb0610d8c5d76422c2da5303"
+        },
+        {
+          "path": "pages/page_3.pdf",
+          "bytes": 84119,
+          "sha256": "da95d118abd460b5957331551669486a63e99ef5be28c9d9b733a730c4d45e3d"
+        },
+        {
+          "path": "pages/page_4.pdf",
+          "bytes": 255350,
+          "sha256": "07ff4d6d18a4f7bafbfd9f5f8533b39149f86d5a8f97df5fb045adb97c8be91f"
+        },
+        {
+          "path": "pages/page_5.pdf",
+          "bytes": 67766,
+          "sha256": "ba662b8dcbaae318c5a230b0cd0514b378c3e7d84a5f6aba377d6f92f301b351"
+        },
+        {
+          "path": "pages/page_6.pdf",
+          "bytes": 128886,
+          "sha256": "dddd858780696b28296b32cb324964861cda0c0067cf259b4e79c8c0b59b718e"
+        },
+        {
+          "path": "pages/page_7.pdf",
+          "bytes": 129859,
+          "sha256": "5cab8312374714df6b9269f08804f49fbce6657af18bff7b1e1733e10c6eac8d"
+        },
+        {
+          "path": "pages/page_8.pdf",
+          "bytes": 67591,
+          "sha256": "ede4f9cd6cb95fdddc967f747d89b57359e93d52063b93e6d35bfd159534d353"
+        },
+        {
+          "path": "pages/page_9.pdf",
+          "bytes": 88865,
+          "sha256": "bcf418deb8e1f039f28802f446b436f0972e7b97ba2f713306553fb08a48ecf9"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

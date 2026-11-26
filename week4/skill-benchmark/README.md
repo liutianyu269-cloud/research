@@ -9,7 +9,7 @@
 
 ## 对照课程示例
 
-已核对课程后端 `dev_examples` 提交 `90c9a04`。样例用 `@Flow` 与 `event` 定义原子执行，再以 `type: flow` 节点和 `routes` 引用多个原子流程，最后按组合 ID 调度。当前实现通过 `Initializer` 动态注册各节点，并按节点 ID 调用 `FlowEngineService.runFlowByFlowId`。整条三节点编排由项目后端串接，仍缺少将整条 workflow 注册成一个原生流程 ID 并以该 ID 一次调度的实现和运行证据。接入范围是 24 道选题。 [课程后端示例](https://github.com/ymxiong/rsi-skill-spring-boot/tree/90c9a0464098c349cb8d021b604a1ca8b2496d83/core-flow/src/main/resources/flow)
+已核对课程后端 `dev_examples` 提交 `90c9a04`。课程样例用 `type: flow` 子节点引用原子流程 ID，由 `routes` 决定推进顺序。当前实现把这 24 条选题流程独立注册到 rsi-flow，按组合 ID 一次调度。Java 8 实跑 24/24 条，72/72 个 Skill 节点成功。24 个预期产物的 SHA-256 均与上轮已评分产物一致。详见[原生编排与复现](platform/native-orchestration.md)。 [课程后端示例](https://github.com/ymxiong/rsi-skill-spring-boot/tree/90c9a0464098c349cb8d021b604a1ca8b2496d83/core-flow/src/main/resources/flow)
 
 ## 复查现有记录
 

@@ -1,0 +1,108 @@
+{
+  "id": "2e482728-4a23-45c7-9759-adb8ef1cec06",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/MoviePy_gen01",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/2e482728-4a23-45c7-9759-adb8ef1cec06",
+  "workflow": {
+    "dataset": "skillgenbench",
+    "caseId": "MoviePy_gen01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "identify-video",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "moviepy-video",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-letterbox-video",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-video",
+      "status": "passed",
+      "elapsedMs": 1383,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/identify-video",
+      "generation": 1,
+      "inputDirectory": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-2/trials/MoviePy_gen01__with-skill__001/task/skillgenbench-moviepy_gen01/context/input",
+      "outputType": "WebM 视频",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2e482728-4a23-45c7-9759-adb8ef1cec06/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 88,
+          "sha256": "d0e1b83e86f211e8b489467116977ba10136d99fe76e6d1e5ee08aac2b96d819"
+        },
+        {
+          "path": "MoviePy_gen01_input.webm",
+          "bytes": 24578294,
+          "sha256": "6fa2f6539cf21076dd10d7673f25244993d660e096d870ac31aa383783120cd7"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "moviepy-video",
+      "status": "passed",
+      "elapsedMs": 24320,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/moviepy-video",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/2e482728-4a23-45c7-9759-adb8ef1cec06/node-inspect/output",
+      "outputType": "MP4 视频",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2e482728-4a23-45c7-9759-adb8ef1cec06/node-process/output",
+      "artifacts": [
+        {
+          "path": "resized_output.mp4",
+          "bytes": 1884934,
+          "sha256": "09d4ad9acb10f2b008ef58a68fe4f5f596ea7305d48b79048252d52e55ff826c"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-letterbox-video",
+      "status": "passed",
+      "elapsedMs": 780,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-letterbox-video",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/2e482728-4a23-45c7-9759-adb8ef1cec06/node-process/output",
+      "outputType": "MP4 视频",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2e482728-4a23-45c7-9759-adb8ef1cec06/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 78,
+          "sha256": "2f9585e1327f8bded6219bccbe1512ffa93a91bb92ef2954a9276e77a1cbc081"
+        },
+        {
+          "path": "resized_output.mp4",
+          "bytes": 1884934,
+          "sha256": "09d4ad9acb10f2b008ef58a68fe4f5f596ea7305d48b79048252d52e55ff826c"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

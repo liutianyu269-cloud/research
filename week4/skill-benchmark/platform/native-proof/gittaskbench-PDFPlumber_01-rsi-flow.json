@@ -1,0 +1,224 @@
+{
+  "id": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+  "name": "PDFPlumber_01",
+  "type": "flow",
+  "title": "导出 PDF 首页文本",
+  "description": null,
+  "params": [],
+  "results": [
+    {
+      "name": "result",
+      "title": null,
+      "description": null,
+      "type": "String",
+      "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+      "parse": null,
+      "notnull": true,
+      "defaultValue": null
+    }
+  ],
+  "nodes": [
+    {
+      "id": "prepare-workflow",
+      "type": "event",
+      "title": null,
+      "async": null,
+      "method": null,
+      "reference": "LIUTIANYU_V2_BEGIN_WORKFLOW",
+      "params": [
+        {
+          "name": "workflowId",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01/bind/prepare-workflow",
+          "notnull": false,
+          "defaultValue": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01"
+        }
+      ],
+      "results": [],
+      "schedule": null,
+      "content": null,
+      "contentImports": null
+    },
+    {
+      "id": "node-inspect",
+      "type": "flow",
+      "title": null,
+      "async": null,
+      "method": null,
+      "reference": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-pdfplumber-01",
+      "params": [
+        {
+          "name": "payload",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01/bind/node-inspect",
+          "notnull": true,
+          "defaultValue": null
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+          "parse": null,
+          "notnull": true,
+          "defaultValue": null
+        },
+        {
+          "name": "proceed",
+          "title": null,
+          "description": null,
+          "type": "Boolean",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+          "parse": null,
+          "notnull": true,
+          "defaultValue": null
+        }
+      ],
+      "schedule": null,
+      "content": null,
+      "contentImports": null
+    },
+    {
+      "id": "node-process",
+      "type": "flow",
+      "title": null,
+      "async": null,
+      "method": null,
+      "reference": "@com.horsecoder.skilllab.liutianyu/v2/gtb-pdfplumber-text",
+      "params": [
+        {
+          "name": "payload",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01/bind/node-process",
+          "notnull": true,
+          "defaultValue": null
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+          "parse": null,
+          "notnull": true,
+          "defaultValue": null
+        },
+        {
+          "name": "proceed",
+          "title": null,
+          "description": null,
+          "type": "Boolean",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+          "parse": null,
+          "notnull": true,
+          "defaultValue": null
+        }
+      ],
+      "schedule": null,
+      "content": null,
+      "contentImports": null
+    },
+    {
+      "id": "node-validate",
+      "type": "flow",
+      "title": null,
+      "async": null,
+      "method": null,
+      "reference": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-pdfplumber-01",
+      "params": [
+        {
+          "name": "payload",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01/bind/node-validate",
+          "notnull": true,
+          "defaultValue": null
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "title": null,
+          "description": null,
+          "type": "String",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+          "parse": null,
+          "notnull": true,
+          "defaultValue": null
+        },
+        {
+          "name": "proceed",
+          "title": null,
+          "description": null,
+          "type": "Boolean",
+          "scope": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+          "parse": null,
+          "notnull": true,
+          "defaultValue": null
+        }
+      ],
+      "schedule": null,
+      "content": null,
+      "contentImports": null
+    }
+  ],
+  "routes": [
+    {
+      "source": "start",
+      "target": "prepare-workflow",
+      "condition": "true",
+      "scope": null
+    },
+    {
+      "source": "prepare-workflow",
+      "target": "node-inspect",
+      "condition": "true",
+      "scope": null
+    },
+    {
+      "source": "node-inspect",
+      "target": "node-process",
+      "condition": "proceed == true",
+      "scope": null
+    },
+    {
+      "source": "node-inspect",
+      "target": "end",
+      "condition": "default",
+      "scope": null
+    },
+    {
+      "source": "node-process",
+      "target": "node-validate",
+      "condition": "proceed == true",
+      "scope": null
+    },
+    {
+      "source": "node-process",
+      "target": "end",
+      "condition": "default",
+      "scope": null
+    },
+    {
+      "source": "node-validate",
+      "target": "end",
+      "condition": "true",
+      "scope": null
+    }
+  ],
+  "strategies": [],
+  "models": [],
+  "schedule": null
+}

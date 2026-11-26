@@ -1,0 +1,108 @@
+{
+  "id": "9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Eparse_02",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Eparse_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "parse-workbook",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-excel-eparse",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-cell-jsonl",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "parse-workbook",
+      "status": "passed",
+      "elapsedMs": 485,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/parse-workbook",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/Eparse_02",
+      "outputType": "Excel 工作簿",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "Eparse_02_input.xlsx",
+          "bytes": 8899,
+          "sha256": "08cb7fd475dc9fb02569663d50ffa02a2b55f9ea8cee774bc6ff941fe46c1a8c"
+        },
+        {
+          "path": "input-inspection.json",
+          "bytes": 49,
+          "sha256": "7e64a72f2cc38385ad72f3916507735d70f955d522025f6b1e1574dc885fe892"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-excel-eparse",
+      "status": "passed",
+      "elapsedMs": 676,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-excel-eparse",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7/node-inspect/output",
+      "outputType": "JSON Lines",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7/node-process/output",
+      "artifacts": [
+        {
+          "path": "eparse_cells.jsonl",
+          "bytes": 12023,
+          "sha256": "d159008f4c107ef86502194b8907b6743c59dfac97a3705c91a1377c3258a01f"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-cell-jsonl",
+      "status": "passed",
+      "elapsedMs": 201,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-cell-jsonl",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7/node-process/output",
+      "outputType": "JSON Lines",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 24,
+          "sha256": "62bf394a90114bae767135497b39b997b770393b502034254acbc4bbd368af57"
+        },
+        {
+          "path": "eparse_cells.jsonl",
+          "bytes": 12023,
+          "sha256": "d159008f4c107ef86502194b8907b6743c59dfac97a3705c91a1377c3258a01f"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

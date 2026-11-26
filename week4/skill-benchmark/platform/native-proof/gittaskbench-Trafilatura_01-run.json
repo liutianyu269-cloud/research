@@ -1,0 +1,113 @@
+{
+  "id": "d6dcb788-1799-4b42-b058-78f55e16acde",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Trafilatura_01",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/d6dcb788-1799-4b42-b058-78f55e16acde",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Trafilatura_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-trafilatura-01",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-web-article",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-trafilatura-01",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-trafilatura-01",
+      "status": "passed",
+      "elapsedMs": 486,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-trafilatura-01",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/Trafilatura_01",
+      "outputType": "公开 HTML 快照及 URL",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/d6dcb788-1799-4b42-b058-78f55e16acde/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "article.html",
+          "bytes": 170699,
+          "sha256": "9e39c6b3bc89cb0fc03c7b2f5be14e08b422fd39425ddcd97cd5b433c268013e"
+        },
+        {
+          "path": "input-inspection.json",
+          "bytes": 26,
+          "sha256": "999985aa7ea99109478d034f4db31d9354d365ac7d42a1eb2399e1f7048ac6c1"
+        },
+        {
+          "path": "Trafilatura_01_input.txt",
+          "bytes": 63,
+          "sha256": "1ad91a7a2fa58168cebdfac5e3ce2451ff07c83f6dd993d73e0f668b1873c9b8"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-web-article",
+      "status": "passed",
+      "elapsedMs": 771,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-web-article",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/d6dcb788-1799-4b42-b058-78f55e16acde/node-inspect/output",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/d6dcb788-1799-4b42-b058-78f55e16acde/node-process/output",
+      "artifacts": [
+        {
+          "path": "article.txt",
+          "bytes": 4733,
+          "sha256": "acbd759ec7c7ddbe81d8b31cc8fe170607c929ea502aa227a9ca2d4478985291"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-trafilatura-01",
+      "status": "passed",
+      "elapsedMs": 209,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-trafilatura-01",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/d6dcb788-1799-4b42-b058-78f55e16acde/node-process/output",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/d6dcb788-1799-4b42-b058-78f55e16acde/node-validate/output",
+      "artifacts": [
+        {
+          "path": "article.txt",
+          "bytes": 4733,
+          "sha256": "acbd759ec7c7ddbe81d8b31cc8fe170607c929ea502aa227a9ca2d4478985291"
+        },
+        {
+          "path": "artifact-validation.json",
+          "bytes": 29,
+          "sha256": "388cbdaf098cb9bf94c9a780b867e19b36ac9943b1b42d6716bba92258af5396"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

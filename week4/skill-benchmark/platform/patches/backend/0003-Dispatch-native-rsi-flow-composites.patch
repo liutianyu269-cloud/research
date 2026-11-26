@@ -1,0 +1,676 @@
+From 54c773331238f58e0ba87f588e65bffc2cb0cd13 Mon Sep 17 00:00:00 2001
+From: Codex <codex@users.noreply.github.com>
+Date: Fri, 27 Nov 2026 01:57:17 +0800
+Subject: [PATCH] feat: dispatch benchmark workflows as native rsi-flow
+ composites
+
+---
+ .../liutianyu/SkillLabV2Controller.java       | 136 +++--------
+ .../skilllab/liutianyu/SkillLabV2Engine.java  | 224 ++++++++++++++----
+ .../liutianyu/SkillLabV2Workflow.java         | 163 +++++++++++++
+ 3 files changed, 371 insertions(+), 152 deletions(-)
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Workflow.java
+
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java
+index 6b8f03b..6d4c731 100644
+--- a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java
+@@ -1,23 +1,21 @@
+ package com.horsecoder.skilllab.liutianyu;
+ 
++import cc.eamon.open.flow.config.flow.FlowConfig;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import com.fasterxml.jackson.databind.node.ObjectNode;
+ import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Dataset;
+ import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Fixture;
+ import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Skill;
+ import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Snapshot;
+-import com.horsecoder.skilllab.liutianyu.SkillLabV2Runner.Invocation;
+-import com.horsecoder.skilllab.liutianyu.SkillLabV2Runner.Result;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Input;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Node;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Plan;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Run;
+ import java.io.IOException;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+-import java.nio.file.Paths;
+-import java.util.ArrayList;
+-import java.util.Collections;
+ import java.util.LinkedHashMap;
+-import java.util.List;
+ import java.util.Map;
+-import java.util.UUID;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.http.HttpStatus;
+@@ -75,7 +73,24 @@ public class SkillLabV2Controller {
+     }
+ 
+     @PostMapping("/runs")
+-    public Run run(@RequestBody Workflow workflow) throws IOException {
++    public Run run(@RequestBody SkillLabV2Workflow workflow) throws Exception {
++        return engine.registerAndExecute(plan(workflow));
++    }
++
++    @PutMapping("/workflows")
++    public FlowConfig registerWorkflow(@RequestBody SkillLabV2Workflow workflow) throws Exception {
++        return engine.register(plan(workflow));
++    }
++
++    @PostMapping("/workflows/run")
++    public Run runRegistered(@RequestBody FlowSelection selection) throws Exception {
++        if (selection == null || selection.flowId == null || selection.flowId.trim().isEmpty()) {
++            throw new IllegalArgumentException("缺少组合流程 ID");
++        }
++        return engine.execute(selection.flowId);
++    }
++
++    private Plan plan(SkillLabV2Workflow workflow) throws IOException {
+         Snapshot snapshot = catalog.read();
+         Fixture fixture = fixture(snapshot, workflow);
+         Map<String, String> outputTypes = validate(workflow, snapshot, fixture);
+@@ -84,68 +99,17 @@ public class SkillLabV2Controller {
+         if (!Files.isDirectory(fixtures)) {
+             throw new IllegalArgumentException("场景输入应为目录");
+         }
+-        Path runs = root.resolve("work/skill-lab-v2/platform/runs");
+-        Files.createDirectories(runs);
+-        if (!runs.toRealPath().startsWith(root)) {
+-            throw new IOException("运行目录位于课程工作区之外");
+-        }
+-
+-        Run run = new Run();
+-        run.id = UUID.randomUUID().toString();
+-        run.workflow = workflow;
+-        run.status = "passed";
+-        Path runFolder = Files.createDirectory(runs.resolve(run.id));
+-        run.directory = displayPath(root, runFolder);
+-        Map<String, Path> completed = new LinkedHashMap<>();
++        Map<String, String> scripts = new LinkedHashMap<>();
+         for (Node node : workflow.nodes) {
+             Skill skill = snapshot.skills.get(node.skillId);
+-            Path step = Files.createDirectory(runFolder.resolve(node.id));
+-            Path source = "case".equals(node.input.from) ? fixtures : completed.get(node.input.nodeId);
+-            Invocation invocation = new Invocation();
+-            invocation.skillId = skill.id;
+-            invocation.argument = fixture.skillArgument;
+-            invocation.expected = fixture.expectedOutput;
+-            invocation.input = source.toString();
+-            invocation.output = step.resolve("output").toString();
+-
+-            NodeResult trace = new NodeResult();
+-            trace.id = node.id;
+-            trace.skillId = skill.id;
+-            trace.outputType = outputTypes.get(node.id);
+-            trace.inputDirectory = displayPath(root, source);
+-            long started = System.nanoTime();
+-            try {
+-                if (skill.script != null) {
+-                    invocation.script = requireFile(root, skill.script).toString();
+-                }
+-                Result result = engine.execute(skill.id, invocation);
+-                trace.flowId = result.flowId;
+-                trace.generation = result.generation;
+-                if (result.error != null) {
+-                    trace.error = result.error;
+-                } else {
+-                    Path produced = Paths.get(result.directory);
+-                    completed.put(node.id, produced);
+-                    trace.outputDirectory = displayPath(root, produced);
+-                    trace.artifacts = result.artifacts;
+-                }
+-            } catch (Exception error) {
+-                log.warn("Skill node {} failed", node.id, error);
+-                trace.error = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
+-            }
+-            trace.elapsedMs = (System.nanoTime() - started) / 1_000_000;
+-            trace.status = trace.error == null ? "passed" : "failed";
+-            run.nodes.add(trace);
+-            if (trace.error != null) {
+-                run.status = "failed";
+-                break;
++            if (skill.script != null) {
++                scripts.put(node.id, requireFile(root, skill.script).toString());
+             }
+         }
+-        json.writerWithDefaultPrettyPrinter().writeValue(runFolder.resolve("run.json").toFile(), run);
+-        return run;
++        return new Plan(workflow, root, fixture, outputTypes, scripts);
+     }
+ 
+-    private Fixture fixture(Snapshot snapshot, Workflow workflow) {
++    private Fixture fixture(Snapshot snapshot, SkillLabV2Workflow workflow) {
+         if (workflow != null && workflow.dataset != null && workflow.caseId != null) {
+             for (Dataset dataset : snapshot.datasets) {
+                 if (dataset.dataset.equals(workflow.dataset)) {
+@@ -160,7 +124,7 @@ public class SkillLabV2Controller {
+         throw new IllegalArgumentException("未知数据集或回归场景");
+     }
+ 
+-    private Map<String, String> validate(Workflow workflow, Snapshot snapshot, Fixture fixture) {
++    private Map<String, String> validate(SkillLabV2Workflow workflow, Snapshot snapshot, Fixture fixture) {
+         String fixtureType = snapshot.skills.get(fixture.skillId).inputType;
+         if (workflow.nodes == null || workflow.nodes.isEmpty() || workflow.nodes.size() > MAX_NODES) {
+             throw new IllegalArgumentException("工作流必须包含 1–" + MAX_NODES + " 个节点");
+@@ -209,10 +173,6 @@ public class SkillLabV2Controller {
+         return file;
+     }
+ 
+-    private String displayPath(Path root, Path item) {
+-        return root.relativize(item).toString().replace('\\', '/');
+-    }
+-
+     @ExceptionHandler(HttpMessageNotReadableException.class)
+     ResponseEntity<ObjectNode> malformed(HttpMessageNotReadableException error) {
+         return problem(HttpStatus.BAD_REQUEST, "请求须使用有效的 JSON 和端口结构");
+@@ -247,43 +207,7 @@ public class SkillLabV2Controller {
+         public String action;
+     }
+ 
+-    public static class Workflow {
+-        public String dataset;
+-        public String caseId;
+-        public List<Node> nodes;
+-    }
+-
+-    public static class Node {
+-        public String id;
+-        public String skillId;
+-        public Input input;
+-    }
+-
+-    public static class Input {
+-        public String from;
+-        public String nodeId;
+-        public String port;
+-    }
+-
+-    public static class Run {
+-        public String id;
+-        public String status;
+-        public String directory;
+-        public Workflow workflow;
+-        public final List<NodeResult> nodes = new ArrayList<>();
+-    }
+-
+-    public static class NodeResult {
+-        public String id;
+-        public String skillId;
+-        public String status;
+-        public long elapsedMs;
++    public static class FlowSelection {
+         public String flowId;
+-        public int generation;
+-        public String inputDirectory;
+-        public String outputType;
+-        public String outputDirectory;
+-        public List<SkillLabV2Runner.Artifact> artifacts = Collections.emptyList();
+-        public String error;
+     }
+ }
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java
+index dacae79..4aa220c 100644
+--- a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java
+@@ -16,9 +16,15 @@ import cc.eamon.open.flow.remote.FlowRequest;
+ import cc.eamon.open.flow.spring.FlowComponent;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import com.horsecoder.common.whuTalent.core.flow.FlowEngineService;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Execution;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Node;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Plan;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Workflow.Run;
++import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collections;
+ import java.util.LinkedHashMap;
++import java.util.List;
+ import java.util.Map;
+ import java.util.UUID;
+ 
+@@ -26,7 +32,11 @@ import java.util.UUID;
+ public class SkillLabV2Engine {
+     private static final String DISPATCH = "LIUTIANYU_V2_DISPATCH";
+     private static final String DISABLED = "LIUTIANYU_V2_DISABLED";
++    private static final String BEGIN = "LIUTIANYU_V2_BEGIN_WORKFLOW";
++    private static final String PREPARE = "prepare-workflow";
++    private static final String RUNTIME_SCOPE = "liutianyu-v2-workflow-runtime";
+     private final Map<String, Integer> generations = new LinkedHashMap<>();
++    private final Map<String, Plan> workflows = new LinkedHashMap<>();
+     private final String session = UUID.randomUUID().toString();
+     private final FlowEngineService flows;
+     private final SkillLabV2Runner runner;
+@@ -49,53 +59,103 @@ public class SkillLabV2Engine {
+     synchronized Registration change(String id, boolean enabled) throws Exception {
+         // 首次使用时初始化课程应用装配的 Spring FlowComponent。
+         FlowEngine.instance().release();
+-        Initializer initializer = InitializerEnums.DEFAULT.getInitializer();
+-        String flowId = flowId(id);
+-        FlowHolder previous = initializer.getFlowHolder(flowId);
+-        FlowConfig config = configuration(flowId, enabled ? DISPATCH : DISABLED);
+-        FlowHolder holder = new FlowHolder(config);
+-        initializer.addExtraFlowConfig(Collections.singletonMap(flowId, config));
+-        initializer.addExtraFlowHolder(Collections.singletonMap(flowId, holder));
+-        if (previous != null) {
+-            previous.getFlowConfig().getNodes().forEach(initializer.getFlowNodeConfigFlowConfigs()::remove);
+-        }
++        install(atomicConfiguration(flowId(id), enabled ? DISPATCH : DISABLED));
+         generations.merge(id, 1, Integer::sum);
++        // rsi-flow 的子流程节点会缓存 FlowHolder。重新装配受影响的父流程以绑定本代 Skill。
++        for (Map.Entry<String, Plan> entry : workflows.entrySet()) {
++            if (entry.getValue().workflow.nodes.stream().anyMatch(node -> id.equals(node.skillId))) {
++                install(compositeConfiguration(entry.getKey(), entry.getValue()));
++            }
++        }
+         return registration(id);
+     }
+ 
+-    // 同一注册槽执行期间保持 holder 和节点配置一致。
+-    synchronized SkillLabV2Runner.Result execute(String id, SkillLabV2Runner.Invocation invocation) throws Exception {
+-        Registration current = registration(id);
+-        if (!current.loaded) {
+-            throw new IllegalStateException("Skill 已撤销或尚未装配 " + id);
+-        }
++    synchronized FlowConfig register(Plan plan) throws Exception {
++        FlowEngine.instance().release();
++        String id = "@com.horsecoder.skilllab.liutianyu/workflow/" + plan.workflow.dataset + "/" + plan.workflow.caseId;
++        requireLoaded(plan);
++        FlowConfig config = compositeConfiguration(id, plan);
++        install(config);
++        workflows.put(id, plan);
++        return config;
++    }
++
++    synchronized Run registerAndExecute(Plan plan) throws Exception {
++        return execute(register(plan).getId());
++    }
++
++    synchronized Run execute(String id) throws Exception {
++        Plan plan = workflow(id);
++        requireLoaded(plan);
+         FlowRequest request = new FlowRequest();
+-        request.setFlowId(flowId(id));
+-        request.setParams(Collections.singletonMap("payload", json.writeValueAsString(invocation)));
++        request.setFlowId(id);
++        request.setParams(Collections.emptyMap());
+         try {
+             Object result = flows.runFlowByFlowId(request).get("result");
+             if (!(result instanceof String)) {
+-                throw new IllegalStateException("rsi-flow 未返回节点结果");
++                throw new IllegalStateException("rsi-flow 未返回组合流程结果");
+             }
+-            SkillLabV2Runner.Result details = json.readValue((String) result, SkillLabV2Runner.Result.class);
+-            details.flowId = current.flowId;
+-            details.generation = current.generation;
+-            return details;
++            Run run = json.readValue((String) result, Run.class);
++            if (!id.equals(run.flowId) || ("passed".equals(run.status) && run.nodes.size() != plan.workflow.nodes.size())) {
++                throw new IllegalStateException("rsi-flow 未完整调度组合流程 " + id);
++            }
++            return run;
+         } finally {
+             FlowContextHolder.clear();
+             ExecutorHolder.clear();
+         }
+     }
+ 
++    private Plan workflow(String id) {
++        Plan plan = workflows.get(id);
++        if (plan == null) {
++            throw new IllegalArgumentException("未知或未注册的组合流程 " + id);
++        }
++        return plan;
++    }
++
++    private void requireLoaded(Plan plan) {
++        for (Node node : plan.workflow.nodes) {
++            if (!registration(node.skillId).loaded) {
++                throw new IllegalStateException("Skill 已撤销或尚未装配 " + node.skillId);
++            }
++        }
++    }
++
++    @Flow(BEGIN)
++    public void begin(String workflowId) throws Exception {
++        Plan plan = workflow(workflowId);
++        requireLoaded(plan);
++        FlowEngine flow = FlowEngine.instance();
++        flow.register(RUNTIME_SCOPE, "execution", new Execution(workflowId, plan));
++        for (Node node : plan.workflow.nodes) {
++            flow.register(nodeScope(workflowId, node.id), "payload", node.id);
++        }
++    }
++
+     @Flow(DISPATCH)
+     public void dispatch(String payload) throws Exception {
+-        SkillLabV2Runner.Invocation invocation = json.readValue(payload, SkillLabV2Runner.Invocation.class);
+-        FlowEngine.instance().register("result", json.writeValueAsString(runner.execute(invocation)));
++        FlowEngine flow = FlowEngine.instance();
++        Object state = flow.retrieve(RUNTIME_SCOPE, "execution");
++        if (!(state instanceof Execution)) {
++            throw new IllegalStateException("请从已注册的组合流程调度此节点");
++        }
++        Execution execution = (Execution) state;
++        if (execution.finished()) {
++            throw new IllegalStateException("原生路由在流程结束后仍调度节点 " + payload);
++        }
++        Node current = execution.plan.workflow.nodes.get(execution.run.nodes.size());
++        execution.execute(payload, registration(current.skillId), runner);
++        if (execution.finished()) {
++            execution.save(json);
++        }
++        flow.register("result", json.writeValueAsString(execution.run));
++        flow.register("proceed", "passed".equals(execution.run.status));
+     }
+ 
+     @Flow(DISABLED)
+     public void disabled(String payload) {
+-        FlowEngine.instance().register("result", "{\"error\":\"Skill 已撤销\"}");
++        throw new IllegalStateException("Skill 已撤销");
+     }
+ 
+     private Registration registration(String id) {
+@@ -109,38 +169,110 @@ public class SkillLabV2Engine {
+         return "@com.horsecoder.skilllab.liutianyu/v2/" + id;
+     }
+ 
+-    private FlowConfig configuration(String id, String reference) {
+-        FlowParamConfig payload = new FlowParamConfig();
+-        payload.setName("payload");
+-        payload.setType("String");
+-        payload.setNotnull(true);
+-        FlowResultConfig result = new FlowResultConfig();
+-        result.setName("result");
+-        result.setType("String");
+-        result.setNotnull(true);
++    private void install(FlowConfig config) throws Exception {
++        Initializer initializer = InitializerEnums.DEFAULT.getInitializer();
++        String id = config.getId();
++        FlowHolder holder = new FlowHolder(config);
++        FlowHolder previous = initializer.getFlowHolder(id);
++        initializer.addExtraFlowConfig(Collections.singletonMap(id, config));
++        initializer.addExtraFlowHolder(Collections.singletonMap(id, holder));
++        if (previous != null) {
++            previous.getFlowConfig().getNodes().forEach(initializer.getFlowNodeConfigFlowConfigs()::remove);
++        }
++    }
+ 
+-        FlowNodeConfig node = new FlowNodeConfig();
+-        node.setId("dispatch");
+-        node.setType("event");
+-        node.setReference(reference);
+-        node.setParams(Collections.singletonList(payload));
+-        node.setResults(Collections.singletonList(result));
++    private FlowConfig atomicConfiguration(String id, String reference) {
++        FlowNodeConfig dispatch = node("dispatch", "event", reference);
++        dispatch.setParams(Collections.singletonList(parameter("payload", id)));
++        dispatch.setResults(nodeResults());
++        FlowConfig config = configuration(id);
++        config.setParams(Collections.singletonList(parameter("payload", id)));
++        config.setResults(nodeResults());
++        config.setNodes(Collections.singletonList(dispatch));
++        config.setRoutes(Arrays.asList(route("start", "dispatch", "true"), route("dispatch", "end", "true")));
++        return config;
++    }
++
++    private FlowConfig compositeConfiguration(String id, Plan plan) {
++        FlowConfig config = configuration(id);
++        config.setTitle(plan.fixture.title);
++        config.setResults(Collections.singletonList(result("result", "String")));
++
++        FlowNodeConfig prepare = node(PREPARE, "event", BEGIN);
++        FlowParamConfig key = parameter("workflowId", nodeScope(id, PREPARE));
++        key.setNotnull(false);
++        key.setDefaultValue(id);
++        prepare.setParams(Collections.singletonList(key));
++        List<FlowNodeConfig> nodes = new ArrayList<>();
++        nodes.add(prepare);
++        List<FlowRouteConfig> routes = new ArrayList<>();
++        routes.add(route("start", PREPARE, "true"));
++        String previous = PREPARE;
++        for (Node step : plan.workflow.nodes) {
++            FlowNodeConfig child = node(step.id, "flow", flowId(step.skillId));
++            child.setParams(Collections.singletonList(parameter("payload", nodeScope(id, step.id))));
++            child.setResults(nodeResults());
++            nodes.add(child);
++            if (PREPARE.equals(previous)) {
++                routes.add(route(previous, step.id, "true"));
++            } else {
++                routes.add(route(previous, step.id, "proceed == true"));
++                routes.add(route(previous, "end", "default"));
++            }
++            previous = step.id;
++        }
++        routes.add(route(previous, "end", "true"));
++        config.setNodes(nodes);
++        config.setRoutes(routes);
++        return config;
++    }
++
++    private static String nodeScope(String workflowId, String nodeId) {
++        return workflowId + "/bind/" + nodeId;
++    }
+ 
++    private FlowConfig configuration(String id) {
+         FlowConfig config = new FlowConfig();
+         config.setId(id);
+         config.setName(id.substring(id.lastIndexOf('/') + 1));
+         config.setType("flow");
+-        config.setParams(Collections.singletonList(payload));
+-        config.setResults(Collections.singletonList(result));
+-        config.setNodes(Collections.singletonList(node));
+-        config.setRoutes(Arrays.asList(route("start", "dispatch"), route("dispatch", "end")));
+         return config;
+     }
+ 
+-    private FlowRouteConfig route(String from, String to) {
++    private FlowParamConfig parameter(String name, String scope) {
++        FlowParamConfig param = new FlowParamConfig();
++        param.setName(name);
++        param.setScope(scope);
++        param.setType("String");
++        param.setNotnull(true);
++        return param;
++    }
++
++    private List<FlowResultConfig> nodeResults() {
++        return Arrays.asList(result("result", "String"), result("proceed", "Boolean"));
++    }
++
++    private FlowResultConfig result(String name, String type) {
++        FlowResultConfig output = new FlowResultConfig();
++        output.setName(name);
++        output.setType(type);
++        output.setNotnull(true);
++        return output;
++    }
++
++    private FlowNodeConfig node(String id, String type, String reference) {
++        FlowNodeConfig node = new FlowNodeConfig();
++        node.setId(id);
++        node.setType(type);
++        node.setReference(reference);
++        return node;
++    }
++
++    private FlowRouteConfig route(String from, String to, String condition) {
+         FlowRouteConfig route = new FlowRouteConfig();
+         route.setSource(from);
+         route.setTarget(to);
++        route.setCondition(condition);
+         return route;
+     }
+ 
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Workflow.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Workflow.java
+new file mode 100644
+index 0000000..74c71d0
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Workflow.java
+@@ -0,0 +1,163 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Fixture;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Runner.Invocation;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Runner.Result;
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++public class SkillLabV2Workflow {
++    public String dataset;
++    public String caseId;
++    public List<Node> nodes;
++
++    public static class Node {
++        public String id;
++        public String skillId;
++        public Input input;
++    }
++
++    public static class Input {
++        public String from;
++        public String nodeId;
++        public String port;
++    }
++
++    public static class Run {
++        public String id;
++        public String flowId;
++        public String status;
++        public String directory;
++        public SkillLabV2Workflow workflow;
++        public List<NodeResult> nodes = new ArrayList<>();
++    }
++
++    public static class NodeResult {
++        public String id;
++        public String skillId;
++        public String status;
++        public long elapsedMs;
++        public String flowId;
++        public int generation;
++        public String inputDirectory;
++        public String outputType;
++        public String outputDirectory;
++        public List<SkillLabV2Runner.Artifact> artifacts = Collections.emptyList();
++        public String error;
++    }
++
++    static final class Plan {
++        final SkillLabV2Workflow workflow;
++        final Path root;
++        final Fixture fixture;
++        final Map<String, String> outputTypes;
++        final Map<String, String> scripts;
++
++        Plan(SkillLabV2Workflow workflow, Path root, Fixture fixture, Map<String, String> outputTypes,
++                Map<String, String> scripts) {
++            this.workflow = workflow;
++            this.root = root;
++            this.fixture = fixture;
++            this.outputTypes = outputTypes;
++            this.scripts = scripts;
++        }
++    }
++
++    static final class Execution {
++        private static final Logger log = LoggerFactory.getLogger(Execution.class);
++        final Plan plan;
++        final Run run = new Run();
++        private final Path fixtures;
++        private final Path directory;
++        private final Map<String, Path> completed = new LinkedHashMap<>();
++
++        Execution(String flowId, Plan plan) throws IOException {
++            this.plan = plan;
++            fixtures = SkillLabV2Catalog.inside(plan.root, plan.fixture.inputRoot);
++            if (!Files.isDirectory(fixtures)) {
++                throw new IllegalArgumentException("场景输入应为目录");
++            }
++            Path runs = plan.root.resolve("work/skill-lab-v2/platform/runs");
++            Files.createDirectories(runs);
++            if (!runs.toRealPath().startsWith(plan.root)) {
++                throw new IOException("运行目录位于课程工作区之外");
++            }
++            run.id = UUID.randomUUID().toString();
++            run.flowId = flowId;
++            run.workflow = plan.workflow;
++            run.status = "passed";
++            directory = Files.createDirectory(runs.resolve(run.id));
++            run.directory = displayPath(directory);
++        }
++
++        boolean finished() {
++            return "failed".equals(run.status) || run.nodes.size() == plan.workflow.nodes.size();
++        }
++
++        void execute(String nodeId, SkillLabV2Engine.Registration registration,
++                SkillLabV2Runner runner) throws IOException {
++            Node node = plan.workflow.nodes.get(run.nodes.size());
++            if (!node.id.equals(nodeId)) {
++                throw new IllegalStateException("原生路由与注册顺序不一致 " + nodeId);
++            }
++            Path source = "case".equals(node.input.from) ? fixtures : completed.get(node.input.nodeId);
++            NodeResult trace = new NodeResult();
++            trace.id = node.id;
++            trace.skillId = node.skillId;
++            trace.inputDirectory = displayPath(source);
++            trace.outputType = plan.outputTypes.get(node.id);
++            trace.flowId = registration.flowId;
++            trace.generation = registration.generation;
++            long started = System.nanoTime();
++            try {
++                if (!registration.loaded) {
++                    throw new IllegalStateException("Skill 已撤销或尚未装配 " + node.skillId);
++                }
++                Path step = Files.createDirectory(directory.resolve(node.id));
++                Invocation invocation = new Invocation();
++                invocation.skillId = node.skillId;
++                invocation.argument = plan.fixture.skillArgument;
++                invocation.expected = plan.fixture.expectedOutput;
++                invocation.script = plan.scripts.get(node.id);
++                invocation.input = source.toString();
++                invocation.output = step.resolve("output").toString();
++                Result result = runner.execute(invocation);
++                trace.error = result.error;
++                if (result.error == null) {
++                    Path produced = Paths.get(result.directory);
++                    completed.put(node.id, produced);
++                    trace.outputDirectory = displayPath(produced);
++                    trace.artifacts = result.artifacts;
++                }
++            } catch (Exception error) {
++                log.warn("Skill node {} failed", node.id, error);
++                trace.error = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
++            }
++            trace.elapsedMs = (System.nanoTime() - started) / 1_000_000;
++            trace.status = trace.error == null ? "passed" : "failed";
++            run.nodes.add(trace);
++            if (trace.error != null) {
++                run.status = "failed";
++            }
++        }
++
++        void save(ObjectMapper json) throws IOException {
++            json.writerWithDefaultPrettyPrinter().writeValue(directory.resolve("run.json").toFile(), run);
++        }
++
++        private String displayPath(Path item) {
++            return plan.root.relativize(item).toString().replace('\\', '/');
++        }
++    }
++}
+-- 
+2.55.0.windows.2
+

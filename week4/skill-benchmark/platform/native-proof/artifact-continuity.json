@@ -1,0 +1,308 @@
+[
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Eparse_01",
+    "runId": "6abe869b-4c86-42a0-907d-58baaf5f1a25",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Eparse_01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eparse_report.txt",
+    "expectedProductHashes": {
+      "eparse_report.txt": "91574cecf58efa985f0e948597ad78ff91423e2cfadf75f0de2a7966f63c9b83"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Eparse_02",
+    "runId": "9d327f8d-3bb3-40c0-9aa3-1b7a9c0ec6b7",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Eparse_02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eparse_cells.jsonl",
+    "expectedProductHashes": {
+      "eparse_cells.jsonl": "d159008f4c107ef86502194b8907b6743c59dfac97a3705c91a1377c3258a01f"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Eparse_03",
+    "runId": "7f2e4b16-a9d5-4252-9738-0a1a65e5580c",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Eparse_03",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "workbook.json",
+    "expectedProductHashes": {
+      "workbook.json": "9fb180c43ce0361e5a24f948d3a53b23cc377d9f44f7dea32a68824f1989516b"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_01",
+    "runId": "7f557d40-6736-40cc-8bad-26a600715276",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Faker_01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "users.csv",
+    "expectedProductHashes": {
+      "users.csv": "805a9dcfe5d3c75cd4f94b826e29e1090797382f2e7d0559791ab32170a9eef0"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_02",
+    "runId": "07d87202-fec0-485b-b0c9-5fbac4f225b6",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Faker_02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "companies.csv",
+    "expectedProductHashes": {
+      "companies.csv": "20229b98f43625741b070fb04d91e0ff9cd4735b1df6d7b5cf2f9733ce6988cd"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_03",
+    "runId": "2b78aba8-db38-4fcd-8146-cf4d3243e928",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Faker_03",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "fake_text.txt",
+    "expectedProductHashes": {
+      "fake_text.txt": "93d9f820146488e67fd35504e455c33bc483a3caa1f87bea5a4ee70a7ba8835a"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "NeuroKit_01",
+    "runId": "c8d8c04b-96eb-45a2-9091-7da85e5ae500",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/NeuroKit_01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eda_events.csv",
+    "expectedProductHashes": {
+      "eda_events.csv": "56e362e7f15f2798723bbfec259a6c389554c4ee3a926f23569eafa88d0d7a3a"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "NeuroKit_02",
+    "runId": "ca46669a-a7c4-4c9c-a758-0ec999a53dbf",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/NeuroKit_02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "ecg_peaks.csv",
+    "expectedProductHashes": {
+      "ecg_peaks.csv": "451563defa8fd0790fb64861e45ce57e0d670e9382c9b2afc1bb39654ffde59f"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "PDFPlumber_01",
+    "runId": "d45616a5-ce52-4777-9bf1-4dcae9de4997",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "first_page.txt",
+    "expectedProductHashes": {
+      "first_page.txt": "d5f8cca13be79b2eb2a867e7d3a8b4a6858cb4134bdb778cc41266275837e04b"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "PDFPlumber_02",
+    "runId": "861bba4b-05a0-4f82-bd3e-ec6bc83b740b",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "tables.csv",
+    "expectedProductHashes": {
+      "tables.csv": "7f831ac46a357c8ad27c0ac3104ca1395eb0d40b0c2b9b11ef38732ec8a7286f"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "PDFPlumber_03",
+    "runId": "79268fad-a9f9-4ba3-b960-68eb67492361",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PDFPlumber_03",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "emails.txt",
+    "expectedProductHashes": {
+      "emails.txt": "862f4fbb497e9357d110546fa6c54607c53db49da9a343fe45b9dd7870b0667e"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "PyPDF2_01",
+    "runId": "02e3a3cb-1b51-45fe-bc6c-d1a4fb6688e4",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PyPDF2_01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "document.txt",
+    "expectedProductHashes": {
+      "document.txt": "5d06fb1557d8d562cb7f39124806834aafeaf3b41e0d45fbb10c6757d144024e"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "PyPDF2_02",
+    "runId": "c57852cb-a140-40e4-8b51-f9c2d30c44cb",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/PyPDF2_02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "pages",
+    "expectedProductHashes": {
+      "pages/page_1.pdf": "bcb54682c0ae2f2c438137a2f455e0fd87dce3042a7abfd46f57b242a4a27b0a",
+      "pages/page_10.pdf": "ace688bda99fab10bce8076d2889dee22c67c1161c88869291e5b6a1aa9c0ba8",
+      "pages/page_11.pdf": "f81d7f30870202d8ec17baa40265f786fca55af3934d2c6b7ab2ee78cec99d33",
+      "pages/page_12.pdf": "b15c6ec1cef9d1b130778dee6ea0c3526927845c16bd070d554924d249ae97aa",
+      "pages/page_13.pdf": "534e9e5b6e3f14a2c5fac928066653655c112ca79484e10f64c340ac236d2cc8",
+      "pages/page_14.pdf": "c82551e0d4bd7001a482c9f820c183d0ad7f2c73a09fd47ba05d2bb7ed717a81",
+      "pages/page_15.pdf": "9de6d3ff841974e5360aa03fe21df0feec432bf3fab3a549649d7d056843c4bd",
+      "pages/page_16.pdf": "9965594228e3b59d538ceb87e9f9921a1fd031f319f210672177cb4e3ba16c8c",
+      "pages/page_17.pdf": "7f8e564338f3df07fc2a630a9eac88e1de1e5226813004b97cd790a2cc9bb39b",
+      "pages/page_18.pdf": "054002d2e65ae5dcdf2d4db143f7188695a629ef4c094a9073295328bd6f7396",
+      "pages/page_19.pdf": "b19f2c8d2113a03d3944922b28b789f345ae469566a48306ef327b8af478632a",
+      "pages/page_2.pdf": "e8c1a47c77f52f68d48ff13e6195d0584e280b0ebb0610d8c5d76422c2da5303",
+      "pages/page_3.pdf": "da95d118abd460b5957331551669486a63e99ef5be28c9d9b733a730c4d45e3d",
+      "pages/page_4.pdf": "07ff4d6d18a4f7bafbfd9f5f8533b39149f86d5a8f97df5fb045adb97c8be91f",
+      "pages/page_5.pdf": "ba662b8dcbaae318c5a230b0cd0514b378c3e7d84a5f6aba377d6f92f301b351",
+      "pages/page_6.pdf": "dddd858780696b28296b32cb324964861cda0c0067cf259b4e79c8c0b59b718e",
+      "pages/page_7.pdf": "5cab8312374714df6b9269f08804f49fbce6657af18bff7b1e1733e10c6eac8d",
+      "pages/page_8.pdf": "ede4f9cd6cb95fdddc967f747d89b57359e93d52063b93e6d35bfd159534d353",
+      "pages/page_9.pdf": "bcf418deb8e1f039f28802f446b436f0972e7b97ba2f713306553fb08a48ecf9"
+    }
+  },
+  {
+    "dataset": "gittaskbench",
+    "caseId": "Trafilatura_01",
+    "runId": "d6dcb788-1799-4b42-b058-78f55e16acde",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Trafilatura_01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "article.txt",
+    "expectedProductHashes": {
+      "article.txt": "acbd759ec7c7ddbe81d8b31cc8fe170607c929ea502aa227a9ca2d4478985291"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "Eparse_gtb01",
+    "runId": "b717ed05-0b89-416d-8caf-0e0d5fa0c4a9",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/Eparse_gtb01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eparse_report.txt",
+    "expectedProductHashes": {
+      "eparse_report.txt": "5478803fea799d9b54fb4d4cd9e84dc0b14a855fcbca813e2479b398042bc9e7"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "Eparse_gtb02",
+    "runId": "2b92fbf1-9b62-4e9c-8260-989700c96bde",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/Eparse_gtb02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eparse_cells.jsonl",
+    "expectedProductHashes": {
+      "eparse_cells.jsonl": "2ce9dc7eae7b337dff269dd3dbf1180db7117c0ef0f1b09ff90816190d18d006"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "MoviePy_gen01",
+    "runId": "2e482728-4a23-45c7-9759-adb8ef1cec06",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/MoviePy_gen01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "resized_output.mp4",
+    "expectedProductHashes": {
+      "resized_output.mp4": "09d4ad9acb10f2b008ef58a68fe4f5f596ea7305d48b79048252d52e55ff826c"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "NeuroKit_gtb01",
+    "runId": "8b6bc744-e76b-4002-88f8-8e6c7aab0cd8",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/NeuroKit_gtb01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eda_scr_metrics.csv",
+    "expectedProductHashes": {
+      "eda_scr_metrics.csv": "b9a4a5caab04c57ffdeaabd4bf7c7354ef67bece6911c16cf27b981842803266"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "NeuroKit_gtb02",
+    "runId": "df5da12a-ab62-4db0-b61e-2860ecc91d52",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/NeuroKit_gtb02",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "ecg_peaks.csv",
+    "expectedProductHashes": {
+      "ecg_peaks.csv": "cc26f4727df49cdb453b611025d7b127531469c779e326d3f63b70914c32c620"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "NeuroKit_gtb03",
+    "runId": "10670663-c4f8-4a22-83d7-8c329561c593",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/NeuroKit_gtb03",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "eog_metrics.csv",
+    "expectedProductHashes": {
+      "eog_metrics.csv": "86b360ef2669432055c5db3e4ff65aa9a8faaa5c5399a73ea5a1beae6b6df560"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "Pillow_gen01",
+    "runId": "d6bd9195-34ff-4d5b-8dc2-080d80df7fec",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/Pillow_gen01",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "color_mask.png",
+    "expectedProductHashes": {
+      "color_mask.png": "949b1636c457cf3ef07371cf793d977eb91628854a01bd42703ed609da40a0d6"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "PyPDF2_gtb03",
+    "runId": "b07c39a8-8dd3-436e-9afd-0595a0a33a2f",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/PyPDF2_gtb03",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "pdf_metadata.json",
+    "expectedProductHashes": {
+      "pdf_metadata.json": "27412a23f417f11196d1e21c180243ea83ca94241730a83af3e11e586311266c"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "ScikitImage_gen05",
+    "runId": "fd9b3275-0071-4441-8a9a-cbbd0bd7f2f4",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/ScikitImage_gen05",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "labeled_components.png",
+    "expectedProductHashes": {
+      "labeled_components.png": "97633bb96dbbc098d6d0bcd43422e539fb228fad88792cc97fb9185cd5162a34"
+    }
+  },
+  {
+    "dataset": "skillgenbench",
+    "caseId": "ScikitImage_gen06",
+    "runId": "cbc9fff8-6892-482f-a693-f57ffc931764",
+    "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/ScikitImage_gen06",
+    "sameForwardedInputHashes": true,
+    "sameExpectedProductHashes": true,
+    "expectedOutput": "mask.png",
+    "expectedProductHashes": {
+      "mask.png": "ecb3dbaa50572ab8917976d2d5b8b986fa2071ad8cdacd50ca8c1d58f84db62b"
+    }
+  }
+]

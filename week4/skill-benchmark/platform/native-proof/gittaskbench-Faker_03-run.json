@@ -1,0 +1,108 @@
+{
+  "id": "2b78aba8-db38-4fcd-8146-cf4d3243e928",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/Faker_03",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/2b78aba8-db38-4fcd-8146-cf4d3243e928",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_03",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-faker-03",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-faker-text",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-faker-03",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-faker-03",
+      "status": "passed",
+      "elapsedMs": 213,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-faker-03",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/Faker_03",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2b78aba8-db38-4fcd-8146-cf4d3243e928/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "Faker_03_input.txt",
+          "bytes": 1909,
+          "sha256": "e6970493a90d65ed5f58e66bb3fff52beffcb51aea9d32ac400f57bd1121d8b7"
+        },
+        {
+          "path": "input-inspection.json",
+          "bytes": 18,
+          "sha256": "abb475a6b6d76066ca7030365bea1cf9073765e20b80d4c61a2f217e6019aaab"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-faker-text",
+      "status": "passed",
+      "elapsedMs": 320,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-faker-text",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/2b78aba8-db38-4fcd-8146-cf4d3243e928/node-inspect/output",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2b78aba8-db38-4fcd-8146-cf4d3243e928/node-process/output",
+      "artifacts": [
+        {
+          "path": "fake_text.txt",
+          "bytes": 1868,
+          "sha256": "93d9f820146488e67fd35504e455c33bc483a3caa1f87bea5a4ee70a7ba8835a"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-faker-03",
+      "status": "passed",
+      "elapsedMs": 181,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-faker-03",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/2b78aba8-db38-4fcd-8146-cf4d3243e928/node-process/output",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2b78aba8-db38-4fcd-8146-cf4d3243e928/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 18,
+          "sha256": "abb475a6b6d76066ca7030365bea1cf9073765e20b80d4c61a2f217e6019aaab"
+        },
+        {
+          "path": "fake_text.txt",
+          "bytes": 1868,
+          "sha256": "93d9f820146488e67fd35504e455c33bc483a3caa1f87bea5a4ee70a7ba8835a"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

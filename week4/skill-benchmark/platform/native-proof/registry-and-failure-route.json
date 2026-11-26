@@ -1,0 +1,30 @@
+{
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/PyPDF2_gtb03",
+  "revoked": {
+    "loaded": false,
+    "generation": 2,
+    "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pdf-inspect",
+    "session": "46c6bb5c-4f17-401e-84e9-20abbb3f7274"
+  },
+  "statusWhileRevoked": 409,
+  "reloaded": {
+    "loaded": true,
+    "generation": 3,
+    "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pdf-inspect",
+    "session": "46c6bb5c-4f17-401e-84e9-20abbb3f7274"
+  },
+  "replayAfterReload": "ac68cfeb-d4d8-420c-a6f0-f363c1db441d",
+  "reloadedNodeGeneration": 3,
+  "failureRoute": {
+    "runId": "c6e15e00-7db8-4dc1-9c52-f447a7b8deb7",
+    "nodes": [
+      "passed",
+      "failed"
+    ],
+    "downstreamWasSkipped": true
+  },
+  "existingBrowserEntry": {
+    "runId": "afcacb08-c487-4e24-b8f6-97eb553c4c26",
+    "status": "passed"
+  }
+}

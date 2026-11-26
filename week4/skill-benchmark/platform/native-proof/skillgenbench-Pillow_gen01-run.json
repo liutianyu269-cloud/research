@@ -1,0 +1,108 @@
+{
+  "id": "d6bd9195-34ff-4d5b-8dc2-080d80df7fec",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/Pillow_gen01",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/d6bd9195-34ff-4d5b-8dc2-080d80df7fec",
+  "workflow": {
+    "dataset": "skillgenbench",
+    "caseId": "Pillow_gen01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "identify-color-image",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "pillow-images",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-png-mask",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-color-image",
+      "status": "passed",
+      "elapsedMs": 344,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/identify-color-image",
+      "generation": 1,
+      "inputDirectory": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-2/trials/Pillow_gen01__with-skill__001/task/skillgenbench-pillow_gen01/context/input",
+      "outputType": "JPEG / PNG",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/d6bd9195-34ff-4d5b-8dc2-080d80df7fec/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 99,
+          "sha256": "afd96ad5fa4063fd747183ff79a55cc72861bbb6991a5a71f49a83dff9f3ec84"
+        },
+        {
+          "path": "Pillow_gen01_input.jpg",
+          "bytes": 198772,
+          "sha256": "9e85d58741e2082c8012e157869ead58077d5f735ee7dc81d0d5cb4ba84ea5f9"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "pillow-images",
+      "status": "passed",
+      "elapsedMs": 505,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pillow-images",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/d6bd9195-34ff-4d5b-8dc2-080d80df7fec/node-inspect/output",
+      "outputType": "PNG 图像",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/d6bd9195-34ff-4d5b-8dc2-080d80df7fec/node-process/output",
+      "artifacts": [
+        {
+          "path": "color_mask.png",
+          "bytes": 22682,
+          "sha256": "949b1636c457cf3ef07371cf793d977eb91628854a01bd42703ed609da40a0d6"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-png-mask",
+      "status": "passed",
+      "elapsedMs": 422,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-png-mask",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/d6bd9195-34ff-4d5b-8dc2-080d80df7fec/node-process/output",
+      "outputType": "PNG 图像",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/d6bd9195-34ff-4d5b-8dc2-080d80df7fec/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 83,
+          "sha256": "601171e3f005bb096ef57db48d94d0d8cee330d0891a555c19da5af1ec687d60"
+        },
+        {
+          "path": "color_mask.png",
+          "bytes": 22682,
+          "sha256": "949b1636c457cf3ef07371cf793d977eb91628854a01bd42703ed609da40a0d6"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "id": "c8d8c04b-96eb-45a2-9091-7da85e5ae500",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/gittaskbench/NeuroKit_01",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/c8d8c04b-96eb-45a2-9091-7da85e5ae500",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "NeuroKit_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-neurokit-01",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-neurokit-scr-events",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-neurokit-01",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-neurokit-01",
+      "status": "passed",
+      "elapsedMs": 208,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-neurokit-01",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/NeuroKit_01",
+      "outputType": "生理信号 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/c8d8c04b-96eb-45a2-9091-7da85e5ae500/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 74,
+          "sha256": "0978fb5c64ac41a4627641dadb5d2df3ddc576069ae523c932448b1bf30b9ac1"
+        },
+        {
+          "path": "NeuroKit_inout_01.csv",
+          "bytes": 46919,
+          "sha256": "ea437fc3f11901a6bf0c196c411e44acff1b8539314689ccdae14fff3e89b0a9"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-neurokit-scr-events",
+      "status": "passed",
+      "elapsedMs": 2039,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-neurokit-scr-events",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/c8d8c04b-96eb-45a2-9091-7da85e5ae500/node-inspect/output",
+      "outputType": "UTF-8 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/c8d8c04b-96eb-45a2-9091-7da85e5ae500/node-process/output",
+      "artifacts": [
+        {
+          "path": "eda_events.csv",
+          "bytes": 103,
+          "sha256": "56e362e7f15f2798723bbfec259a6c389554c4ee3a926f23569eafa88d0d7a3a"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-neurokit-01",
+      "status": "passed",
+      "elapsedMs": 260,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-neurokit-01",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/c8d8c04b-96eb-45a2-9091-7da85e5ae500/node-process/output",
+      "outputType": "UTF-8 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/c8d8c04b-96eb-45a2-9091-7da85e5ae500/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 21,
+          "sha256": "edc92db61ca2c5dbbd03037e70d2097b830725015ec0fb0077538db0f8211df4"
+        },
+        {
+          "path": "eda_events.csv",
+          "bytes": 103,
+          "sha256": "56e362e7f15f2798723bbfec259a6c389554c4ee3a926f23569eafa88d0d7a3a"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

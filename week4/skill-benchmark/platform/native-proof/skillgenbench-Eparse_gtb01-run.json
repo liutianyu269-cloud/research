@@ -1,0 +1,113 @@
+{
+  "id": "b717ed05-0b89-416d-8caf-0e0d5fa0c4a9",
+  "flowId": "@com.horsecoder.skilllab.liutianyu/workflow/skillgenbench/Eparse_gtb01",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/b717ed05-0b89-416d-8caf-0e0d5fa0c4a9",
+  "workflow": {
+    "dataset": "skillgenbench",
+    "caseId": "Eparse_gtb01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "parse-workbook",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "excel-eparse",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-text-report",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "parse-workbook",
+      "status": "passed",
+      "elapsedMs": 680,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/parse-workbook",
+      "generation": 1,
+      "inputDirectory": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-2/trials/Eparse_gtb01__with-skill__001/task/skillgenbench-eparse_gtb01/context/input",
+      "outputType": "Excel 工作簿",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/b717ed05-0b89-416d-8caf-0e0d5fa0c4a9/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "Eparse_gtb01_input/table_date.xlsx",
+          "bytes": 8899,
+          "sha256": "08cb7fd475dc9fb02569663d50ffa02a2b55f9ea8cee774bc6ff941fe46c1a8c"
+        },
+        {
+          "path": "Eparse_gtb01_input/table_epa.xlsx",
+          "bytes": 8575,
+          "sha256": "6f7de3fdf05ea5fa93d57c6d6cb7f904b569eb37b939c87464db0c59752470a9"
+        },
+        {
+          "path": "input-inspection.json",
+          "bytes": 84,
+          "sha256": "73b3ef3fc9830ee40751555e44309e6a51013c49ddf425817910dbd4b92dde08"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "excel-eparse",
+      "status": "passed",
+      "elapsedMs": 1067,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/excel-eparse",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/b717ed05-0b89-416d-8caf-0e0d5fa0c4a9/node-inspect/output",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/b717ed05-0b89-416d-8caf-0e0d5fa0c4a9/node-process/output",
+      "artifacts": [
+        {
+          "path": "eparse_report.txt",
+          "bytes": 1021,
+          "sha256": "5478803fea799d9b54fb4d4cd9e84dc0b14a855fcbca813e2479b398042bc9e7"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-text-report",
+      "status": "passed",
+      "elapsedMs": 229,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-text-report",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/b717ed05-0b89-416d-8caf-0e0d5fa0c4a9/node-process/output",
+      "outputType": "UTF-8 文本",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/b717ed05-0b89-416d-8caf-0e0d5fa0c4a9/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 29,
+          "sha256": "60d66e1ad082d5fecd1d02862290906e924f554aa1b9968b0bb478d2d6ba51d3"
+        },
+        {
+          "path": "eparse_report.txt",
+          "bytes": 1021,
+          "sha256": "5478803fea799d9b54fb4d4cd9e84dc0b14a855fcbca813e2479b398042bc9e7"
+        }
+      ],
+      "error": null
+    }
+  ]
+}
