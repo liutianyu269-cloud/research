@@ -1,0 +1,73 @@
+{
+  "caseId": "PyPDF2_01",
+  "expectedOutput": "document.txt",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PyPDF2_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdf-pages",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "pypdf-page-operations",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pypdf2-01",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 6,
+        "finishReason": "finished"
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4,
+        "finishReason": "finished"
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 5,
+        "finishReason": "finished"
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "f8606fea-7127-4386-91b1-d33603709916",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "PyPDF2_01_input.pdf": "901409e8e3d504a07ca1793e0b05d4b58e333760026dc1996d27edee9365a513"
+    },
+    "artifactSha256": "5d06fb1557d8d562cb7f39124806834aafeaf3b41e0d45fbb10c6757d144024e",
+    "graderSha256": "94ea375a8082dc8db5a1dbcb4349c4d201bb0137ec63fb144066a743e18aa121"
+  }
+}

@@ -1,0 +1,1162 @@
+From c0105c2242c25f28da0eac9e28d1b2a2cc881b2f Mon Sep 17 00:00:00 2001
+From: Codex <codex@users.noreply.github.com>
+Date: Mon, 23 Nov 2026 23:45:36 +0800
+Subject: [PATCH 1/2] Run registered SkillGenBench packages through rsi-flow
+
+---
+ .../liutianyu/SkillLabController.java         |  47 +++
+ .../skilllab/liutianyu/SkillLabFlow.java      |  85 ++++++
+ .../skilllab/liutianyu/SkillLabStarter.java   |  26 ++
+ .../src/main/liutianyu-skill-lab/launch.sh    |   5 +
+ .../main/liutianyu-skill-lab/requirements.txt |  12 +
+ .../src/main/liutianyu-skill-lab/runner.py    | 281 ++++++++++++++++++
+ .../solutions/documents.py                    | 147 +++++++++
+ .../liutianyu-skill-lab/solutions/media.py    | 149 ++++++++++
+ .../liutianyu-skill-lab/solutions/signals.py  |  85 ++++++
+ .../main/liutianyu-skill-lab/validation.py    | 148 +++++++++
+ .../LiuTianyu/flow-liutianyu-skill-lab.json   |  58 ++++
+ .../resources/liutianyu-skill-lab.properties  |  11 +
+ 12 files changed, 1054 insertions(+)
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabController.java
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabFlow.java
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/launch.sh
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/requirements.txt
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/runner.py
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/solutions/documents.py
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/solutions/media.py
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/solutions/signals.py
+ create mode 100644 core-starter/src/main/liutianyu-skill-lab/validation.py
+ create mode 100644 core-starter/src/main/resources/flow/LiuTianyu/flow-liutianyu-skill-lab.json
+ create mode 100644 core-starter/src/main/resources/liutianyu-skill-lab.properties
+
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabController.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabController.java
+new file mode 100644
+index 0000000..b944033
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabController.java
+@@ -0,0 +1,47 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import cc.eamon.open.flow.remote.FlowRequest;
++import com.fasterxml.jackson.databind.JsonNode;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.horsecoder.common.whuTalent.core.flow.FlowEngineService;
++import java.util.Map;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.CrossOrigin;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RestController;
++
++@RestController
++@CrossOrigin(origins = {"http://127.0.0.1:3105", "http://localhost:3105"})
++public class SkillLabController {
++    private static final String FLOW_ID = "@com.horsecoder.skilllab.liutianyu/MANUAL_SKILL_LAB";
++    private final FlowEngineService flows;
++    private final ObjectMapper json;
++
++    public SkillLabController(FlowEngineService flows, ObjectMapper json) {
++        this.flows = flows;
++        this.json = json;
++    }
++
++    @PostMapping("/api/engine/flow")
++    public ResponseEntity<JsonNode> run(@RequestBody FlowRequest request) throws Exception {
++        Map<String, Object> params = request.getParams();
++        if (!FLOW_ID.equals(request.getFlowId()) || params == null || params.size() != 1
++                || !(params.get("structure") instanceof String)
++                || ((String) params.get("structure")).length() > 16000) {
++            return ResponseEntity.badRequest().body(problem("无效的人工编排请求"));
++        }
++        Object result = flows.runFlowByFlowId(request).get("result");
++        if (!(result instanceof String)) {
++            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(problem("rsi-flow 未返回执行结果"));
++        }
++        JsonNode payload = json.readTree((String) result);
++        return ResponseEntity.status(payload.path("ok").asBoolean() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
++            .body(payload);
++    }
++
++    private JsonNode problem(String message) {
++        return json.createObjectNode().put("ok", false).put("error", message);
++    }
++}
+\ No newline at end of file
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabFlow.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabFlow.java
+new file mode 100644
+index 0000000..fdd5525
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabFlow.java
+@@ -0,0 +1,85 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import cc.eamon.open.flow.core.FlowEngine;
++import cc.eamon.open.flow.core.stereotype.Flow;
++import cc.eamon.open.flow.spring.FlowComponent;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import java.io.ByteArrayOutputStream;
++import java.io.IOException;
++import java.io.InputStream;
++import java.io.OutputStream;
++import java.nio.charset.StandardCharsets;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.CompletionException;
++import java.util.concurrent.TimeUnit;
++
++@FlowComponent
++public class SkillLabFlow {
++    private final ObjectMapper json;
++
++    public SkillLabFlow(ObjectMapper json) {
++        this.json = json;
++    }
++
++    @Flow("LIUTIANYU_MANUAL_SKILL_DISPATCH")
++    public void dispatch(String structure) throws Exception {
++        String result;
++        try {
++            result = callRunner(structure);
++        } catch (InterruptedException error) {
++            Thread.currentThread().interrupt();
++            result = failure("本地执行已中断");
++        } catch (Exception error) {
++            result = failure(error.getMessage() == null ? "本地执行失败" : error.getMessage());
++        }
++        FlowEngine.instance().register("result", result);
++    }
++
++    private String callRunner(String payload) throws Exception {
++        String runner = System.getenv("LIUTIANYU_SKILL_LAUNCHER");
++        String workspace = System.getenv("LIUTIANYU_SKILL_WORKSPACE");
++        if (runner == null || runner.isEmpty() || workspace == null || workspace.isEmpty()) {
++            return failure("请设置 Skill 启动脚本和原题数据目录的 WSL 路径");
++        }
++        Process process = new ProcessBuilder("wsl.exe", "-d", "Ubuntu", "--exec", "sh", runner, workspace)
++            .redirectError(ProcessBuilder.Redirect.INHERIT).start();
++        try {
++            CompletableFuture<String> response = CompletableFuture.supplyAsync(() -> readOutput(process));
++            try (OutputStream input = process.getOutputStream()) {
++                input.write(payload.getBytes(StandardCharsets.UTF_8));
++            }
++            if (!process.waitFor(185, TimeUnit.SECONDS)) {
++                throw new IOException("本地 Skill 或评分器执行超时");
++            }
++            if (process.exitValue() != 0) {
++                throw new IOException("本地执行程序退出，状态 " + process.exitValue());
++            }
++            return response.get(5, TimeUnit.SECONDS);
++        } finally {
++            if (process.isAlive()) {
++                process.destroyForcibly();
++            }
++        }
++    }
++
++    private String readOutput(Process process) {
++        try (InputStream input = process.getInputStream()) {
++            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
++            byte[] chunk = new byte[4096];
++            int count;
++            while ((count = input.read(chunk)) != -1) {
++                if (buffer.size() + count > 4 * 1024 * 1024) {
++                    throw new IOException("本地执行返回的数据过大");
++                }
++                buffer.write(chunk, 0, count);
++            }
++            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
++        } catch (IOException error) {
++            throw new CompletionException(error);
++        }
++    }
++
++    private String failure(String message) {
++        return json.createObjectNode().put("ok", false).put("error", message).toString();
++    }
++}
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java
+new file mode 100644
+index 0000000..c72af7d
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java
+@@ -0,0 +1,26 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import cc.eamon.open.flow.spring.scanner.FlowScan;
++import com.horsecoder.common.whuTalent.core.flow.FlowEngineService;
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
++import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Import;
++
++@Configuration
++@EnableAutoConfiguration(excludeName = {
++    "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration",
++    "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration",
++    "org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration",
++    "com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure"
++})
++@EnableDiscoveryClient
++@FlowScan(flowPackages = "com.horsecoder.skilllab.liutianyu")
++@Import({FlowEngineService.class, SkillLabController.class, SkillLabFlow.class})
++public class SkillLabStarter {
++    public static void main(String[] args) {
++        System.setProperty("spring.config.name", "liutianyu-skill-lab");
++        SpringApplication.run(SkillLabStarter.class, args);
++    }
++}
+\ No newline at end of file
+diff --git a/core-starter/src/main/liutianyu-skill-lab/launch.sh b/core-starter/src/main/liutianyu-skill-lab/launch.sh
+new file mode 100644
+index 0000000..a2c9f04
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/launch.sh
+@@ -0,0 +1,5 @@
++#!/bin/sh
++set -eu
++lab_folder=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
++workspace=${1:-$(CDPATH= cd -- "$lab_folder/../.." && pwd)}
++exec "$HOME/.local/share/rsiskill-skillgenbench/bin/python" -B "$lab_folder/runner.py" --workspace "$workspace"
+diff --git a/core-starter/src/main/liutianyu-skill-lab/requirements.txt b/core-starter/src/main/liutianyu-skill-lab/requirements.txt
+new file mode 100644
+index 0000000..194738c
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/requirements.txt
+@@ -0,0 +1,12 @@
++eparse==0.9.2
++imageio-ffmpeg==0.8.1
++moviepy==2.2.1
++neurokit2==0.2.12
++numpy==2.2.6
++opencv-python-headless==4.11.0.86
++openpyxl==3.1.5
++pandas==3.1.1
++pillow==11.3.0
++PyPDF2==3.0.1
++scikit-image==0.25.2
++scipy==1.18.1
+diff --git a/core-starter/src/main/liutianyu-skill-lab/runner.py b/core-starter/src/main/liutianyu-skill-lab/runner.py
+new file mode 100644
+index 0000000..964e8a8
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/runner.py
+@@ -0,0 +1,281 @@
++"""Execute the manually assembled SkillGenBench workflow against the original inputs."""
++import argparse
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++import sys
++from tempfile import NamedTemporaryFile, TemporaryDirectory
++from uuid import uuid4
++from zipfile import ZipFile
++
++from validation import check_artifact
++
++HERE = Path(__file__).resolve().parent
++STAGES = ("read", "execute", "validate", "grade")
++TASKS = {
++    "Eparse_gtb01": ("documents", "eparse_report.txt", "Eparse_01/gt.txt"),
++    "Eparse_gtb02": ("documents", "eparse_cells.jsonl", "Eparse_02/gt.txt"),
++    "MoviePy_gen01": ("media", "resized_output.mp4", ""),
++    "NeuroKit_gtb01": ("signals", "eda_scr_metrics.csv", "NeuroKit_01/gt.csv"),
++    "NeuroKit_gtb02": ("signals", "ecg_peaks.csv", "NeuroKit_02/gt.csv"),
++    "NeuroKit_gtb03": ("signals", "eog_metrics.csv", "NeuroKit_03/gt.csv"),
++    "Pillow_gen01": ("media", "color_mask.png", ""),
++    "PyPDF2_gtb03": ("documents", "pdf_metadata.json", "PyPDF2_03/gt.json"),
++    "ScikitImage_gen05": ("media", "labeled_components.png", ""),
++    "ScikitImage_gen06": ("media", "mask.png", ""),
++}
++METHODS = {
++    "Eparse_gtb01": ("复核工作簿与报告布局", "按文件和工作表遍历，保留表头与原值。"),
++    "Eparse_gtb02": ("逐单元格写出 JSON Lines", "从 Eparse 按行提取单元格记录；将格式争议留在评分侧。"),
++    "MoviePy_gen01": ("等比缩放与居中补边", "按短边适配画布，保持帧率和画幅，编码 H.264。"),
++    "NeuroKit_gtb01": ("汇总 EDA 的 SCR 与 tonic 指标", "复用 EDA 清洗和峰值检测，按已核对的采样率计算三项统计。"),
++    "NeuroKit_gtb02": ("导出 ECG 的 R/P 峰索引", "使用 150 Hz 处理 ECG，按检测列导出索引列表。"),
++    "NeuroKit_gtb03": ("提取呼吸峰与呼吸频率", "读取实际存在的 RSP 列；采样率 100 Hz 来自匹配的 NeuroKit 公开样例。"),
++    "Pillow_gen01": ("按 HSV 范围生成掩膜", "转换颜色尺度后合并三个通道条件，输出 0/255 的 L 模式 PNG。"),
++    "PyPDF2_gtb03": ("输出 PDF 文档元数据", "从文档信息字典读取命名字段，统一日期表示。"),
++    "ScikitImage_gen05": ("找到二值掩膜并着色", "识别带前景和背景的有效输入，按连通域分配 RGB 颜色。"),
++    "ScikitImage_gen06": ("以原始灰度计算 Otsu 阈值", "逐像素应用灰度大于阈值的规则，保留原尺寸并输出 8 位 PNG。"),
++}
++HISTORICAL_ISSUES = {
++    "NeuroKit_gtb01": "上次模型耗尽输出额度，未取得有效分数。",
++    "ScikitImage_gen05": "旧评分器找不到掩膜；历史诊断中产物只有一种颜色。",
++}
++KNOWN_CONFLICTS = {
++    "Eparse_gtb02": "原题要求逐行 JSON，旧评分器整文件调用 json.loads。",
++    "ScikitImage_gen05": "原评分器在输入路径下找不到掩膜；题包将二值图放在子目录中。",
++    "ScikitImage_gen06": "原图按题面执行 Otsu 得出 1.17% 前景；旧评分器要求至少 5%。",
++}
++PUBLIC_SOURCES = {
++    "eparse": "https://github.com/ChrisPappalardo/eparse",
++    "moviepy": "https://github.com/Zulko/moviepy",
++    "neurokit": "https://github.com/neuropsychology/NeuroKit",
++    "pillow": "https://github.com/python-pillow/Pillow",
++    "pypdf2": "https://github.com/py-pdf/pypdf",
++    "scikitimage": "https://github.com/scikit-image/scikit-image",
++}
++
++
++def make_catalog(workspace):
++    archive = workspace / "outputs"
++    comparison = json.loads((archive / "skillgenbench-dsh-10-comparison.json").read_text())
++    mapping = json.loads((archive / "skillgenbench-50-task-map.json").read_text())
++    skills = {row["task_id"]: row for row in mapping["tasks"]}
++    catalog = {}
++    for row in comparison["tasks"]:
++        task_id = row["task_id"]
++        if task_id not in TASKS:
++            continue
++        skill = skills[task_id]
++        domain, output, reference = TASKS[task_id]
++        title, method = METHODS[task_id]
++        trial = workspace / "work" / "sgb-dsh-ab" / row["with_skill_trial_dir"] / "task"
++        dirs = sorted(path for path in trial.iterdir() if path.is_dir())
++        if len(dirs) != 1:
++            raise ValueError(f"{task_id} 缺少唯一的原始任务目录")
++        origin = reference.split("/", 1)[0] if reference else None
++        catalog[task_id] = {
++            "id": task_id, "title": title, "method": method, "skill": skill["skill_name"],
++            "source": PUBLIC_SOURCES[skill["collection"]], "upstreamCase": origin,
++            "oldScore": row["with_skill_native_score"], "noSkillScore": row["no_skill_mean_native_score"],
++            "oldProblem": HISTORICAL_ISSUES.get(task_id) or row["with_skill_native_comment"] or "旧记录未提供评分",
++            "oldStatus": row["with_skill_status"], "conflict": KNOWN_CONFLICTS.get(task_id),
++            "output": output, "domain": domain, "reference": reference, "trial": dirs[0],
++        }
++    return catalog
++
++
++def atomic_json(destination, value):
++    with NamedTemporaryFile(mode="w", encoding="utf-8", dir=destination.parent, delete=False) as stream:
++        temporary = Path(stream.name)
++        json.dump(value, stream, ensure_ascii=False, indent=2)
++    try:
++        os.replace(temporary, destination)
++    finally:
++        temporary.unlink(missing_ok=True)
++
++
++def call_script(command, cwd):
++    env = {
++        "PATH": os.environ["PATH"],
++        "HOME": str(cwd),
++        "LANG": "C.UTF-8",
++        "MPLBACKEND": "Agg",
++        "OPENBLAS_NUM_THREADS": "1",
++        "PYTHONDONTWRITEBYTECODE": "1",
++    }
++    return subprocess.run(command, cwd=cwd, env=env, text=True, encoding="utf-8",
++                          errors="replace", capture_output=True, timeout=100)
++
++
++def register_package(workspace, state_dir, case):
++    with ZipFile(workspace / "outputs" / "skillgenbench-50-skills.zip") as archive:
++        original = archive.read(f"skills/{case['skill']}/SKILL.md")
++    original_sha = hashlib.sha256(original).hexdigest()
++    source_script = HERE / "solutions" / f"{case['domain']}.py"
++    script = source_script.read_bytes()
++    task = case["id"]
++    name = f"{case['skill']}-manual"
++    body = (
++        f"---\nname: {name}\ndescription: {json.dumps(case['method'], ensure_ascii=False)}\n---\n\n"
++        f"# {case['title']}\n\n"
++        f"{case['method']}\n\n"
++        f"技术来源 [{case['domain']}]({case['source']})。对应 SkillGenBench 题目 `{task}`。\n\n"
++        f"```sh\npython scripts/{source_script.name} {task} INPUT_DIR OUTPUT_DIR\n```\n\n"
++        f"脚本从题包的输入目录读取数据，在输出目录写入 `{case['output']}`。输出目录须已存在。\n\n"
++        f"历史 Skill SHA-256 `{original_sha}`\n"
++    )
++    markdown = body.encode("utf-8")
++    package_sha = hashlib.sha256(markdown + b"\0" + script).hexdigest()
++    revisions = state_dir / "skills" / task
++    package = revisions / package_sha
++    if not package.is_dir():
++        revisions.mkdir(parents=True, exist_ok=True)
++        with TemporaryDirectory(dir=revisions) as temporary:
++            staged = Path(temporary) / name
++            (staged / "scripts").mkdir(parents=True)
++            (staged / "SKILL.md").write_bytes(markdown)
++            (staged / "scripts" / source_script.name).write_bytes(script)
++            staged.rename(package)
++    return package_sha
++
++
++def loaded_package(state_dir, case, revision):
++    package = state_dir / "skills" / case["id"] / revision
++    worker = package / "scripts" / f"{case['domain']}.py"
++    markdown = (package / "SKILL.md").read_bytes()
++    if hashlib.sha256(markdown + b"\0" + worker.read_bytes()).hexdigest() != revision:
++        raise ValueError("注册包内容与已登记的哈希不一致，请重新注册")
++    return worker, {"sha256": revision, "body": markdown.decode("utf-8"),
++                    "manualMethod": case["method"]}
++
++
++def grade_artifact(case, output, input_root, run_dir):
++    grading = case["trial"] / "grading"
++    score_path = run_dir / "native-score.jsonl"
++    if case["reference"]:
++        grader = grading / "tests" / "test_script.py"
++        reference = grading / "groundtruth" / case["reference"]
++        extra = ["--groundtruth", str(reference)]
++        reference_exists = reference.is_file()
++    else:
++        grader = grading / "tests" / "test_outputs.py"
++        extra = ["--input-dir", str(input_root)] if case["id"] == "ScikitImage_gen05" else []
++        reference_exists = None
++    command = [sys.executable, str(grader), "--output", str(output), "--result", str(score_path), *extra]
++    completed = call_script(command, run_dir)
++    (run_dir / "grader.log").write_text(completed.stdout + completed.stderr, encoding="utf-8")
++    if not score_path.is_file():
++        return {"status": "error", "value": None, "process": None,
++                "comment": "原评分器未写出结果，见 grader.log", "exitCode": completed.returncode}
++    results = [line for line in score_path.read_text(encoding="utf-8").splitlines() if line.strip()]
++    native = json.loads(results[-1]) if results else {}
++    process = native.get("Process")
++    result = native.get("Result")
++    value = int(result) if process is True and isinstance(result, bool) else None
++    return {"status": "scored" if value is not None else "unscored", "value": value,
++            "process": process, "comment": native.get("comments") or native.get("Comments"),
++            "exitCode": completed.returncode, "referenceAvailable": reference_exists,
++            "graderSha256": hashlib.sha256(grader.read_bytes()).hexdigest()}
++
++
++def run_workflow(state_dir, case, revision, steps):
++    if not isinstance(steps, list) or steps[:2] != list(STAGES[:2]) or steps != [
++        stage for stage in STAGES if stage in steps
++    ]:
++        raise ValueError("流程先读取输入、再执行 Skill，校验和复评按顺序选用")
++    inputs = case["trial"] / "context" / "input"
++    if not any(path.is_file() for path in inputs.rglob("*")):
++        raise ValueError("原始任务输入缺失")
++    worker, description = loaded_package(state_dir, case, revision)
++    run_dir = state_dir / "runs" / f"{case['id']}-{uuid4().hex[:12]}"
++    output_dir = run_dir / "output"
++    output_dir.mkdir(parents=True)
++    output = output_dir / case["output"]
++    public_run = {"id": run_dir.name, "task": case["id"], "steps": steps,
++                  "artifact": None, "skill": description, "stepsDone": ["read"],
++                  "score": None, "validation": None, "status": "error", "message": None}
++    try:
++        completed = call_script([sys.executable, str(worker), case["id"], str(inputs), str(output_dir)], run_dir)
++        (run_dir / "execution.log").write_text(completed.stdout + completed.stderr, encoding="utf-8")
++        if completed.returncode != 0:
++            raise RuntimeError(f"Skill 执行退出码 {completed.returncode}，见 execution.log")
++        public_run["stepsDone"].append("execute")
++        if not output.is_file() or output.stat().st_size == 0:
++            raise RuntimeError(f"缺少非空产物 {case['output']}")
++        public_run["artifact"] = {"name": output.name, "bytes": output.stat().st_size,
++                                  "sha256": hashlib.sha256(output.read_bytes()).hexdigest()}
++        if "validate" in steps:
++            try:
++                message = check_artifact(case["id"], inputs, output)
++                public_run["validation"] = {"passed": True, "message": message}
++            except (OSError, ValueError) as exc:
++                public_run["validation"] = {"passed": False, "message": str(exc)}
++            public_run["stepsDone"].append("validate")
++        if "grade" in steps:
++            public_run["score"] = grade_artifact(case, output, inputs, run_dir)
++            public_run["stepsDone"].append("grade")
++        public_run["status"] = "produced"
++    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
++        public_run["message"] = str(exc)
++    atomic_json(run_dir / "result.json", public_run)
++    return public_run
++
++
++def dispatch(workspace, request):
++    if not isinstance(request, dict):
++        raise ValueError("请求须为 JSON 对象")
++    catalog = make_catalog(workspace)
++    state_dir = workspace / "outputs" / "liutianyu-skill-lab"
++    state_dir.mkdir(parents=True, exist_ok=True)
++    saved = state_dir / "registry.json"
++    action = request.get("action")
++    task = request.get("task")
++    with (state_dir / ".registry.lock").open("w", encoding="utf-8") as lock:
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        state = json.loads(saved.read_text()) if saved.exists() else {"loaded": [], "latest": {}}
++        revisions = state.setdefault("revisions", {})
++        if action == "list":
++            public = [{key: value for key, value in case.items() if key not in {
++                "domain", "trial", "reference"
++            }} for case in catalog.values()]
++            return {"cases": public, "loaded": state["loaded"], "latest": state["latest"]}
++        if not isinstance(task, str) or not re.fullmatch(r"[A-Za-z0-9_]+", task) or task not in catalog:
++            raise ValueError("请指定目录内的任务 ID")
++        case = catalog[task]
++        if action == "register":
++            revisions[task] = register_package(workspace, state_dir, case)
++            if task not in state["loaded"]:
++                state["loaded"].append(task)
++        elif action == "unload":
++            state["loaded"] = [value for value in state["loaded"] if value != task]
++            revisions.pop(task, None)
++        elif action == "run":
++            if task not in state["loaded"]:
++                raise ValueError("Skill 当前未加载，请先注册")
++            # Materialize revisions on first use for registrations from the previous format.
++            if task not in revisions:
++                revisions[task] = register_package(workspace, state_dir, case)
++            state["latest"][task] = run_workflow(state_dir, case, revisions[task], request.get("steps"))
++        else:
++            raise ValueError("无效的操作")
++        atomic_json(saved, state)
++    return {"loaded": state["loaded"], "latest": state["latest"], "task": task}
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--workspace", type=Path, required=True)
++    args = parser.parse_args()
++    try:
++        result = dispatch(args.workspace.resolve(), json.load(sys.stdin))
++        print(json.dumps({"ok": True, "data": result}, ensure_ascii=False))
++    except (OSError, ValueError, KeyError, subprocess.TimeoutExpired) as exc:
++        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core-starter/src/main/liutianyu-skill-lab/solutions/documents.py b/core-starter/src/main/liutianyu-skill-lab/solutions/documents.py
+new file mode 100644
+index 0000000..627222e
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/solutions/documents.py
+@@ -0,0 +1,147 @@
++"""Produce document artifacts from the public SkillGenBench task inputs."""
++
++import argparse
++import json
++import os
++from pathlib import Path
++from tempfile import NamedTemporaryFile
++
++
++def write_artifact(path, chunks):
++    with NamedTemporaryFile(
++        mode="w", encoding="utf-8", newline="\n", dir=path.parent, delete=False
++    ) as output:
++        staged = Path(output.name)
++        try:
++            output.writelines(chunks)
++            output.close()
++            os.replace(staged, path)
++        finally:
++            output.close()
++            staged.unlink(missing_ok=True)
++
++
++def eparse_tables(workbook):
++    from eparse.core import get_df_from_file
++
++    by_sheet = {name: [] for name in workbook.sheet_names}
++    for frame, anchor, _, sheet in get_df_from_file(workbook, exclude_nested=True):
++        by_sheet[sheet].append((anchor, frame))
++    return by_sheet
++
++
++def table_text(frame):
++    if frame.empty:
++        return "(empty worksheet)"
++    rows = frame.iloc[1:].set_axis(frame.iloc[0].tolist(), axis="columns")
++    if rows.empty:
++        return "  ".join(map(str, rows.columns))
++    return rows.to_string(index=False, max_rows=None, max_cols=None)
++
++
++def excel_report(input_root):
++    from pandas import ExcelFile, read_excel
++
++    directory = input_root / "Eparse_gtb01_input"
++    files = sorted(
++        (file for file in directory.iterdir()
++         if file.is_file() and file.suffix.lower() == ".xlsx" and not file.name.startswith("~$")),
++        key=lambda file: (file.name.casefold(), file.name),
++    )
++    if not files:
++        raise ValueError(f"No Excel workbooks in {directory}")
++    for file in files:
++        yield f"File name: {file.name}\n"
++        with ExcelFile(file) as workbook:
++            for sheet, tables in eparse_tables(workbook).items():
++                yield f"Sheet name: {sheet}\n"
++                if not tables:
++                    yield table_text(read_excel(workbook, sheet_name=sheet, header=None)) + "\n"
++                for anchor, frame in tables:
++                    if len(tables) > 1:
++                        yield f"Table: {anchor}\n"
++                    yield table_text(frame) + "\n"
++        yield "\n"
++
++
++def excel_cells(input_root):
++    from eparse.core import df_serialize_table
++    from openpyxl.utils.cell import coordinate_to_tuple, get_column_letter
++    from pandas import ExcelFile, isna, read_excel
++
++    file = input_root / "Eparse_gtb02_input.xlsx"
++    with ExcelFile(file) as workbook:
++        for sheet, tables in eparse_tables(workbook).items():
++            cells = {}
++            meta = {"sheet": sheet, "f_name": file.name}
++            for _, frame in tables:
++                for record in df_serialize_table(frame, **meta):
++                    cells.setdefault(record["excel_RC"], record)
++
++            # Eparse detects table rectangles. Retain isolated populated cells too.
++            grid = read_excel(workbook, sheet_name=sheet, header=None)
++            for row in range(grid.shape[0]):
++                for column in range(grid.shape[1]):
++                    address = f"{get_column_letter(column + 1)}{row + 1}"
++                    if address in cells or isna(grid.iat[row, column]):
++                        continue
++                    one_cell = grid.iloc[row:row + 1, column:column + 1]
++                    record, = df_serialize_table(one_cell, **meta)
++                    record.update(row=row, column=column, c_header=None, r_header=None)
++                    cells[address] = record
++
++            for address in sorted(cells, key=coordinate_to_tuple):
++                yield json.dumps(cells[address], ensure_ascii=False, allow_nan=False) + "\n"
++
++
++def pdf_metadata(input_root):
++    from PyPDF2 import PdfReader
++
++    file = input_root / "PyPDF2_gtb03_input.pdf"
++    with file.open("rb") as source:
++        reader = PdfReader(source)
++        if reader.is_encrypted:
++            raise ValueError("The PDF needs to be decrypted before extracting metadata")
++        metadata = reader.metadata
++        result = {}
++        if metadata is not None:
++            for field in ("author", "title", "subject", "creator", "producer"):
++                value = getattr(metadata, field)
++                if value is not None:
++                    result[field] = str(value)
++            for property_name, pdf_key in (("creation_date", "/CreationDate"),
++                                           ("modification_date", "/ModDate")):
++                raw = metadata.get(pdf_key)
++                if raw is not None:
++                    try:
++                        parsed = getattr(metadata, property_name, None)
++                    except ValueError:
++                        parsed = None
++                    result[property_name] = parsed.isoformat() if parsed is not None else str(raw)
++            keywords = metadata.get("/Keywords")
++            if keywords is not None:
++                result["keywords"] = str(keywords)
++        yield json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2) + "\n"
++
++
++TASKS = {
++    "Eparse_gtb01": (excel_report, "eparse_report.txt"),
++    "Eparse_gtb02": (excel_cells, "eparse_cells.jsonl"),
++    "PyPDF2_gtb03": (pdf_metadata, "pdf_metadata.json"),
++}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("task_id", choices=TASKS)
++    parser.add_argument("input_root", type=Path)
++    parser.add_argument("output_root", type=Path)
++    args = parser.parse_args()
++    solve, filename = TASKS[args.task_id]
++    artifact = args.output_root / filename
++    write_artifact(artifact, solve(args.input_root))
++    print(artifact)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core-starter/src/main/liutianyu-skill-lab/solutions/media.py b/core-starter/src/main/liutianyu-skill-lab/solutions/media.py
+new file mode 100644
+index 0000000..3ab101e
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/solutions/media.py
+@@ -0,0 +1,149 @@
++"""Run video and image skills on the original task inputs."""
++
++import argparse
++import json
++import os
++from pathlib import Path
++import sys
++from tempfile import TemporaryDirectory
++
++
++def resize_video(input_root, output_path):
++    from moviepy import VideoFileClip
++
++    target_width, target_height = 640, 480
++    video_path = input_root / "MoviePy_gen01_input.webm"
++    with VideoFileClip(str(video_path)) as source:
++        width, height = source.size
++        scale = min(target_width / width, target_height / height)
++        fitted_size = (round(width * scale), round(height * scale))
++        resized = source.resized(new_size=fitted_size)
++        with resized.with_background_color(
++            size=(target_width, target_height), color=(0, 0, 0), pos="center"
++        ) as letterboxed:
++            letterboxed.write_videofile(
++                str(output_path),
++                fps=source.fps,
++                codec="libx264",
++                audio=source.audio is not None,
++                audio_codec="aac",
++                temp_audiofile=str(output_path.with_name("audio.m4a")),
++                threads=2,
++                logger=None,
++            )
++    return {"canvas": [target_width, target_height], "content_size": fitted_size, "codec": "h264"}
++
++
++def select_hsv(input_root, output_path):
++    import numpy as np
++    from PIL import Image
++
++    with Image.open(input_root / "Pillow_gen01_input.jpg") as source:
++        hsv = np.asarray(source.convert("RGB").convert("HSV"), dtype=np.float64)
++    hue = hsv[..., 0] * (360 / 255)
++    saturation = hsv[..., 1] / 255
++    value = hsv[..., 2] / 255
++    selected = (20 <= hue) & (hue <= 40) & (saturation >= 0.3) & (value >= 0.4)
++    Image.fromarray(selected.astype(np.uint8) * 255).save(output_path, format="PNG")
++    return {"size": list(selected.shape[::-1]), "foreground_fraction": float(selected.mean())}
++
++
++def grayscale_pixels(image):
++    import numpy as np
++
++    if image.mode == "P":
++        image = image.convert("RGBA")
++    values = np.asarray(image)
++    if values.ndim == 2:
++        return values
++    if image.mode in {"RGB", "RGBA"}:
++        if image.mode == "RGBA" and not (values[..., 3] == 255).all():
++            return None
++        if (values[..., :3] == values[..., :1]).all():
++            return values[..., 0]
++    return None
++
++
++def color_connected_components(input_root, output_path):
++    import numpy as np
++    from PIL import Image
++    from skimage.measure import label
++
++    input_directory = input_root / "ScikitImage_gen05_input"
++    candidates = []
++    for candidate in sorted(input_directory.iterdir()):
++        if not candidate.is_file() or candidate.suffix.lower() != ".png":
++            continue
++        with Image.open(candidate) as image:
++            gray = grayscale_pixels(image)
++            if gray is not None:
++                values = np.unique(gray)
++                # A binary mask has a zero background and a nonzero foreground.
++                if len(values) == 2 and values[0] == 0 and values[1] > 0:
++                    candidates.append((candidate, gray != 0))
++    if len(candidates) != 1:
++        raise ValueError(f"Expected one binary PNG mask with background and foreground, found {len(candidates)}")
++
++    source, foreground = candidates[0]
++    labels, count = label(foreground, background=0, connectivity=2, return_num=True)
++    if count > 0xFFFFFF:
++        raise ValueError("There are more foreground regions than distinct nonblack RGB colors")
++    component_ids = np.arange(count + 1, dtype=np.uint32)
++    # An odd multiplier is one-to-one modulo 2**24, leaving label zero black.
++    colors = (component_ids * 0x9E3779) & 0xFFFFFF
++    palette = np.column_stack((colors >> 16, (colors >> 8) & 255, colors & 255)).astype(np.uint8)
++    Image.fromarray(palette[labels]).save(output_path, format="PNG")
++    return {"input": source.name, "components": int(count), "size": list(foreground.shape[::-1])}
++
++
++def make_otsu_mask(input_root, output_path):
++    import numpy as np
++    from PIL import Image
++    from skimage.filters import threshold_otsu
++
++    with Image.open(input_root / "ScikitImage_gen06_input.png") as source:
++        gray = grayscale_pixels(source)
++    if gray is None:
++        raise ValueError("Otsu input must be a grayscale image")
++    # Estimate the threshold before converting to 8-bit output.
++    threshold = threshold_otsu(gray)
++    foreground = gray > threshold
++    Image.fromarray(foreground.astype(np.uint8) * 255).save(output_path, format="PNG")
++    return {
++        "size": list(foreground.shape[::-1]),
++        "threshold": float(threshold),
++        "foreground_fraction": float(foreground.mean()),
++    }
++
++
++TASKS = {
++    "MoviePy_gen01": (resize_video, "resized_output.mp4"),
++    "Pillow_gen01": (select_hsv, "color_mask.png"),
++    "ScikitImage_gen05": (color_connected_components, "labeled_components.png"),
++    "ScikitImage_gen06": (make_otsu_mask, "mask.png"),
++}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("task_id", choices=TASKS)
++    parser.add_argument("input_root", type=Path)
++    parser.add_argument("output_root", type=Path)
++    args = parser.parse_args()
++
++    process, filename = TASKS[args.task_id]
++    try:
++        with TemporaryDirectory(dir=args.output_root) as temporary:
++            pending_output = Path(temporary) / filename
++            summary = process(args.input_root, pending_output)
++            os.replace(pending_output, args.output_root / filename)
++    except (OSError, ValueError, ImportError) as error:
++        print(f"{args.task_id}: {error}", file=sys.stderr)
++        return 1
++
++    print(json.dumps({"task_id": args.task_id, "output": filename, **summary}))
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/core-starter/src/main/liutianyu-skill-lab/solutions/signals.py b/core-starter/src/main/liutianyu-skill-lab/solutions/signals.py
+new file mode 100644
+index 0000000..ed28f4b
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/solutions/signals.py
+@@ -0,0 +1,85 @@
++"""Run the NeuroKit2 skills on the published benchmark inputs."""
++
++import argparse
++import csv
++import json
++from pathlib import Path
++
++import neurokit2 as nk
++import numpy as np
++import pandas as pd
++
++
++def read_signal(input_path, channel):
++    samples = pd.read_csv(input_path, usecols=[channel])[channel].to_numpy(dtype=float)
++    if not samples.size or not np.isfinite(samples).all():
++        raise ValueError(f"{channel} must contain finite samples without gaps")
++    return samples
++
++
++def summarize_eda(input_path):
++    # The matching public GitTaskBench NeuroKit_01 query specifies 250 Hz.
++    sampling_rate = 250
++    signals, _ = nk.eda_process(read_signal(input_path, "EDA"), sampling_rate=sampling_rate)
++    peaks = signals["SCR_Peaks"].to_numpy() == 1
++    amplitudes = signals.loc[peaks, "SCR_Amplitude"].to_numpy()
++    amplitudes = amplitudes[np.isfinite(amplitudes)]
++    return {
++        "SCR_Peaks_Amplitude_Mean": float(amplitudes.mean()) if amplitudes.size else None,
++        "SCR_Peaks_N": int(peaks.sum()),
++        "EDA_Tonic_SD": float(np.nanstd(signals["EDA_Tonic"].to_numpy(), ddof=0)),
++    }
++
++
++def extract_ecg_peaks(input_path):
++    signals, _ = nk.ecg_process(read_signal(input_path, "ECG"), sampling_rate=150)
++    # The processed columns are sample-aligned binary markers, not peak indices.
++    return {
++        name: np.flatnonzero(signals[name].to_numpy() == 1).tolist()
++        for name in ("ECG_R_Peaks", "ECG_P_Peaks")
++    }
++
++
++def extract_respiratory_metrics(input_path):
++    # The input begins with the same 2,175 samples as the public NeuroKit
++    # example bio_resting_8min_100hz.csv bundled by GitTaskBench. It contains
++    # RSP, ECG, EDA and PhotoSensor; the breathing waveform is RSP.
++    sampling_rate = 100
++    print("Respiratory waveform: RSP; 100 Hz from the matching NeuroKit example recording")
++    signals, info = nk.rsp_process(read_signal(input_path, "RSP"), sampling_rate=sampling_rate)
++    peak_times = (np.asarray(info["RSP_Peaks"], dtype=float) / sampling_rate).tolist()
++    rates = signals["RSP_Rate"].to_numpy()
++    rates = rates[np.isfinite(rates)]
++    return {
++        "Mean_Respiratory_Rate_BPM": [float(rates.mean())] if rates.size else [],
++        "Peak_Times_Seconds": peak_times,
++        "Number_of_Peaks": [len(peak_times)],
++    }
++
++
++TASKS = {
++    "NeuroKit_gtb01": ("eda_scr_metrics.csv", summarize_eda),
++    "NeuroKit_gtb02": ("ecg_peaks.csv", extract_ecg_peaks),
++    "NeuroKit_gtb03": ("eog_metrics.csv", extract_respiratory_metrics),
++}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("task_id", choices=TASKS)
++    parser.add_argument("input_root", type=Path)
++    parser.add_argument("output_root", type=Path)
++    args = parser.parse_args()
++
++    output_name, extract = TASKS[args.task_id]
++    input_path = args.input_root / f"{args.task_id}_input.csv"
++    metrics = extract(input_path)
++    row = [json.dumps(value, allow_nan=False) if isinstance(value, list) else value for value in metrics.values()]
++    with (args.output_root / output_name).open("w", encoding="utf-8", newline="") as output:
++        writer = csv.writer(output, lineterminator="\n")
++        writer.writerow(metrics.keys())
++        writer.writerow(row)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core-starter/src/main/liutianyu-skill-lab/validation.py b/core-starter/src/main/liutianyu-skill-lab/validation.py
+new file mode 100644
+index 0000000..61b0dc4
+--- /dev/null
++++ b/core-starter/src/main/liutianyu-skill-lab/validation.py
+@@ -0,0 +1,148 @@
++"""Check concrete public task requirements independently of the native score."""
++
++import csv
++import json
++
++
++def check_artifact(task, inputs, output):
++    if task == "Eparse_gtb01":
++        from openpyxl import load_workbook
++
++        report = output.read_text(encoding="utf-8")
++        count = 0
++        for path in sorted((inputs / "Eparse_gtb01_input").glob("*.xlsx")):
++            if path.name.startswith("~$"):
++                continue
++            if f"File name: {path.name}\n" not in report:
++                raise ValueError(f"报告缺少工作簿 {path.name}")
++            workbook = load_workbook(path, read_only=True)
++            try:
++                for sheet in workbook.sheetnames:
++                    if f"Sheet name: {sheet}\n" not in report:
++                        raise ValueError(f"报告缺少工作表 {sheet}")
++                    count += 1
++            finally:
++                workbook.close()
++        return f"报告覆盖 {count} 张工作表。"
++
++    if task == "Eparse_gtb02":
++        from openpyxl import load_workbook
++
++        fields = {"row", "column", "value", "type", "c_header", "r_header", "excel_RC", "sheet", "f_name"}
++        keys = set()
++        with output.open(encoding="utf-8") as lines:
++            for number, line in enumerate(lines, start=1):
++                cell = json.loads(line)
++                if not isinstance(cell, dict) or not fields.issubset(cell):
++                    raise ValueError(f"第 {number} 行没有完整的单元格字段")
++                key = (cell["sheet"], cell["excel_RC"])
++                if key in keys:
++                    raise ValueError(f"第 {number} 行的单元格已写出")
++                keys.add(key)
++        workbook = load_workbook(inputs / "Eparse_gtb02_input.xlsx", read_only=True)
++        try:
++            expected = {(sheet.title, cell.coordinate) for sheet in workbook for row in sheet
++                        for cell in row if cell.value is not None}
++        finally:
++            workbook.close()
++        if keys != expected:
++            raise ValueError("JSON Lines 未精确覆盖工作簿的非空单元格")
++        return f"{len(keys)} 行有效 JSON 对象，覆盖原工作簿的非空单元格。"
++
++    if task.startswith("NeuroKit_"):
++        with output.open(encoding="utf-8", newline="") as stream:
++            reader = csv.DictReader(stream)
++            rows = list(reader)
++        required = {
++            "NeuroKit_gtb01": ("SCR_Peaks_Amplitude_Mean", "SCR_Peaks_N", "EDA_Tonic_SD"),
++            "NeuroKit_gtb02": ("ECG_R_Peaks", "ECG_P_Peaks"),
++            "NeuroKit_gtb03": ("Mean_Respiratory_Rate_BPM", "Peak_Times_Seconds", "Number_of_Peaks"),
++        }[task]
++        if len(rows) != 1 or not set(required).issubset(rows[0]):
++            raise ValueError("CSV 应为包含请求指标的一行数据")
++        metrics = rows[0]
++        if task == "NeuroKit_gtb01":
++            tuple(float(metrics[field]) for field in required if metrics[field] != "")
++            return "EDA 汇总表包含三项指标。"
++        values = [json.loads(metrics[field]) for field in required]
++        if not all(isinstance(value, list) for value in values):
++            raise ValueError("CSV 指标列必须使用列表格式")
++        if task == "NeuroKit_gtb03" and values[2] != [len(values[1])]:
++            raise ValueError("呼吸峰数量与峰时刻列表不一致")
++        return "CSV 指标列使用列表格式。"
++
++    if task == "PyPDF2_gtb03":
++        from PyPDF2 import PdfReader
++
++        metadata = json.loads(output.read_text(encoding="utf-8"))
++        with (inputs / "PyPDF2_gtb03_input.pdf").open("rb") as source:
++            original = PdfReader(source).metadata or {}
++            for field, key in (("author", "/Author"), ("title", "/Title"),
++                               ("subject", "/Subject"), ("creator", "/Creator"),
++                               ("producer", "/Producer")):
++                if key in original and metadata.get(field) != str(original[key]):
++                    raise ValueError(f"PDF 元数据字段 {field} 与原文档不一致")
++            if "/CreationDate" in original and not metadata.get("creation_date"):
++                raise ValueError("源文档创建日期未写入")
++        return "JSON 可读取，已核对原文档的命名字段和创建日期是否写入。"
++
++    if task == "MoviePy_gen01":
++        import cv2
++
++        video = cv2.VideoCapture(str(output))
++        try:
++            available, frame = video.read()
++            if not available or frame.shape[:2] != (480, 640):
++                raise ValueError("视频必须可解码为 640×480")
++        finally:
++            video.release()
++        return "输出视频可解码，尺寸为 640×480。"
++
++    return check_image(task, inputs, output)
++
++
++def check_image(task, inputs, output):
++    import numpy as np
++    from PIL import Image
++
++    with Image.open(output) as image:
++        if image.format != "PNG":
++            raise ValueError("产物必须是 PNG")
++        mode, size = image.mode, image.size
++        pixels = np.asarray(image)
++    if task == "ScikitImage_gen05":
++        from skimage.measure import label
++
++        source = inputs / "ScikitImage_gen05_input" / "search_image.png"
++        with Image.open(source) as image:
++            foreground = np.asarray(image.convert("L")) != 0
++        if mode != "RGB" or pixels.shape[:2] != foreground.shape or np.any(pixels[~foreground]):
++            raise ValueError("着色图必须与原掩膜同尺寸、使用 RGB，并保持背景为黑色")
++        labels, count = label(foreground, connectivity=2, return_num=True)
++        colors = set()
++        for component in range(1, count + 1):
++            values = np.unique(pixels[labels == component], axis=0)
++            if len(values) != 1 or not values[0].any():
++                raise ValueError("每个前景连通域须使用单一的非黑色")
++            colors.add(tuple(values[0]))
++        if len(colors) != count:
++            raise ValueError("不同连通域须使用不同颜色")
++        return f"背景为黑色，{count} 个连通域各用一种不同的 RGB 颜色。"
++
++    if mode != "L" or not set(np.unique(pixels)).issubset({0, 255}):
++        raise ValueError("掩膜必须是 8 位单通道的 0/255 PNG")
++    if task == "ScikitImage_gen06":
++        from skimage.filters import threshold_otsu
++
++        with Image.open(inputs / "ScikitImage_gen06_input.png") as image:
++            original = np.asarray(image)
++        threshold = threshold_otsu(original)
++        expected = original > threshold
++        if pixels.shape != expected.shape or not np.array_equal(pixels == 255, expected):
++            raise ValueError("产物与题面规定的逐像素 Otsu 掩膜不一致")
++        return f"逐像素匹配原图 Otsu 掩膜，阈值 {threshold:g}，前景 {expected.mean():.2%}。"
++
++    with Image.open(inputs / "Pillow_gen01_input.jpg") as image:
++        if size != image.size:
++            raise ValueError("掩膜尺寸与原图不一致")
++    return "掩膜与原图同尺寸，使用 8 位单通道和 0/255 两种像素。"
+diff --git a/core-starter/src/main/resources/flow/LiuTianyu/flow-liutianyu-skill-lab.json b/core-starter/src/main/resources/flow/LiuTianyu/flow-liutianyu-skill-lab.json
+new file mode 100644
+index 0000000..31091ef
+--- /dev/null
++++ b/core-starter/src/main/resources/flow/LiuTianyu/flow-liutianyu-skill-lab.json
+@@ -0,0 +1,58 @@
++{
++  "id": "@com.horsecoder.skilllab.liutianyu/MANUAL_SKILL_LAB",
++  "name": "MANUAL_SKILL_LAB",
++  "title": "刘添予 · 人工编排",
++  "type": "flow",
++  "params": [
++    {
++      "name": "structure",
++      "title": "编排请求",
++      "type": "String",
++      "notnull": true
++    }
++  ],
++  "results": [
++    {
++      "name": "result",
++      "title": "执行结果",
++      "type": "String",
++      "notnull": true
++    }
++  ],
++  "nodes": [
++    {
++      "id": "LIUTIANYU_DISPATCH",
++      "type": "event",
++      "title": "调度课程 Skill",
++      "reference": "LIUTIANYU_MANUAL_SKILL_DISPATCH",
++      "params": [
++        {
++          "name": "structure",
++          "title": "编排请求",
++          "type": "String",
++          "notnull": true
++        }
++      ],
++      "results": [
++        {
++          "name": "result",
++          "title": "执行结果",
++          "type": "String",
++          "notnull": true
++        }
++      ]
++    }
++  ],
++  "routes": [
++    {
++      "source": "start",
++      "target": "LIUTIANYU_DISPATCH",
++      "condition": "true"
++    },
++    {
++      "source": "LIUTIANYU_DISPATCH",
++      "target": "end",
++      "condition": "true"
++    }
++  ]
++}
+\ No newline at end of file
+diff --git a/core-starter/src/main/resources/liutianyu-skill-lab.properties b/core-starter/src/main/resources/liutianyu-skill-lab.properties
+new file mode 100644
+index 0000000..8bb5fb3
+--- /dev/null
++++ b/core-starter/src/main/resources/liutianyu-skill-lab.properties
+@@ -0,0 +1,11 @@
++server.address=127.0.0.1
++server.port=33479
++spring.application.name=liutianyu-skill-lab
++spring.cloud.config.enabled=false
++spring.main.banner-mode=off
++eureka.client.service-url.defaultZone=http://127.0.0.1:10096/eureka/
++eureka.client.fetch-registry=false
++eureka.client.register-with-eureka=true
++eureka.instance.prefer-ip-address=true
++eureka.instance.ip-address=127.0.0.1
++eureka.instance.hostname=127.0.0.1
+\ No newline at end of file

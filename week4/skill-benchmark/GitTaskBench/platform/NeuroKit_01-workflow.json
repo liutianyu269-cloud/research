@@ -1,0 +1,32 @@
+{
+  "dataset": "gittaskbench",
+  "caseId": "NeuroKit_01",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-neurokit-01",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-neurokit-scr-events",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-neurokit-01",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "dataset": "gittaskbench",
+  "caseId": "Eparse_02",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "parse-workbook",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-excel-eparse",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-cell-jsonl",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

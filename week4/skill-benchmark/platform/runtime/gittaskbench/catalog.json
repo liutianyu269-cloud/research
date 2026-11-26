@@ -1,0 +1,433 @@
+{
+  "dataset": "GitTaskBench",
+  "cases": [
+    {
+      "id": "Faker_01",
+      "title": "生成 100 条合成用户 CSV",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Faker_01",
+      "expectedOutput": "users.csv",
+      "outputType": "UTF-8 CSV",
+      "skillId": "faker-tabular-fixtures",
+      "skillArgument": "Faker_01"
+    },
+    {
+      "id": "Faker_02",
+      "title": "生成 5 条合成公司 CSV",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Faker_02",
+      "expectedOutput": "companies.csv",
+      "outputType": "UTF-8 CSV",
+      "skillId": "faker-tabular-fixtures",
+      "skillArgument": "Faker_02"
+    },
+    {
+      "id": "PyPDF2_01",
+      "title": "抽取整份 PDF 的文本",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/PyPDF2_01",
+      "expectedOutput": "document.txt",
+      "outputType": "UTF-8 TXT",
+      "skillId": "pypdf-page-operations",
+      "skillArgument": "PyPDF2_01"
+    },
+    {
+      "id": "PyPDF2_02",
+      "title": "将 PDF 拆成独立单页文件",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/PyPDF2_02",
+      "expectedOutput": "pages",
+      "outputType": "单页 PDF 目录",
+      "skillId": "pypdf-page-operations",
+      "skillArgument": "PyPDF2_02"
+    },
+    {
+      "id": "Eparse_01",
+      "title": "导出工作簿工作表报告",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Eparse_01",
+      "expectedOutput": "eparse_report.txt",
+      "skillId": "gtb-excel-eparse",
+      "skillArgument": "Eparse_01",
+      "outputType": "UTF-8 文本"
+    },
+    {
+      "id": "Eparse_02",
+      "title": "逐单元格导出 JSON Lines",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Eparse_02",
+      "expectedOutput": "eparse_cells.jsonl",
+      "skillId": "gtb-excel-eparse",
+      "skillArgument": "Eparse_02",
+      "outputType": "JSON Lines"
+    },
+    {
+      "id": "NeuroKit_02",
+      "title": "导出 ECG 的 R/P 峰位置",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/NeuroKit_02",
+      "expectedOutput": "ecg_peaks.csv",
+      "skillId": "gtb-neurokit-signals",
+      "skillArgument": "NeuroKit_02",
+      "outputType": "CSV 指标表"
+    },
+    {
+      "id": "Eparse_03",
+      "title": "Excel 工作簿导出 JSON",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Eparse_03",
+      "expectedOutput": "workbook.json",
+      "outputType": "UTF-8 JSON",
+      "skillId": "gtb-excel-workbook-json",
+      "skillArgument": "Eparse_03"
+    },
+    {
+      "id": "NeuroKit_01",
+      "title": "提取 EDA 的 SCR 起点、峰值位置与高度",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/NeuroKit_01",
+      "expectedOutput": "eda_events.csv",
+      "outputType": "UTF-8 CSV",
+      "skillId": "gtb-neurokit-scr-events",
+      "skillArgument": "NeuroKit_01"
+    },
+    {
+      "id": "Faker_03",
+      "title": "替换为合成文本",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Faker_03",
+      "expectedOutput": "fake_text.txt",
+      "outputType": "UTF-8 文本",
+      "skillId": "gtb-faker-text",
+      "skillArgument": "Faker_03"
+    },
+    {
+      "id": "PDFPlumber_01",
+      "title": "导出 PDF 首页文本",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/PDFPlumber_01",
+      "expectedOutput": "first_page.txt",
+      "outputType": "UTF-8 文本",
+      "skillId": "gtb-pdfplumber-text",
+      "skillArgument": "PDFPlumber_01"
+    },
+    {
+      "id": "PDFPlumber_02",
+      "title": "提取 PDF 前两页表格",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/PDFPlumber_02",
+      "expectedOutput": "tables.csv",
+      "outputType": "UTF-8 CSV",
+      "skillId": "gtb-pdfplumber-tables",
+      "skillArgument": "PDFPlumber_02"
+    },
+    {
+      "id": "PDFPlumber_03",
+      "title": "提取 PDF 中的电子邮件地址",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/PDFPlumber_03",
+      "expectedOutput": "emails.txt",
+      "outputType": "UTF-8 文本",
+      "skillId": "gtb-pdfplumber-emails",
+      "skillArgument": "PDFPlumber_03"
+    },
+    {
+      "id": "Trafilatura_01",
+      "title": "提取网页文章正文",
+      "inputRoot": "work/skill-lab-v2/gittaskbench/inputs/Trafilatura_01",
+      "expectedOutput": "article.txt",
+      "outputType": "UTF-8 文本",
+      "skillId": "gtb-web-article",
+      "skillArgument": "Trafilatura_01"
+    }
+  ],
+  "skills": [
+    {
+      "id": "faker-tabular-fixtures",
+      "title": "Faker 表格样本生成",
+      "description": "按表头顺序把 CSV 列映射到 Faker provider，固定随机种子生成可复跑的合成用户或公司数据。",
+      "source": "https://github.com/joke2k/faker",
+      "script": "work/skill-lab-v2/gittaskbench/skills/faker-tabular-fixtures/scripts/generate.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/faker-tabular-fixtures/SKILL.md",
+      "inputType": "题目指定的行数与列映射，无文件输入",
+      "outputType": "UTF-8 CSV"
+    },
+    {
+      "id": "pypdf-page-operations",
+      "title": "PDF 逐页处理",
+      "description": "用 pypdf 按原文件顺序读取页面，抽取文本或逐页写入独立 PDF。",
+      "source": "https://github.com/py-pdf/pypdf",
+      "script": "work/skill-lab-v2/gittaskbench/skills/pypdf-page-operations/scripts/process.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/pypdf-page-operations/SKILL.md",
+      "inputType": "PDF",
+      "outputType": "UTF-8 TXT 或单页 PDF 目录"
+    },
+    {
+      "id": "gtb-excel-eparse",
+      "title": "GitTaskBench · Eparse 工作簿导出",
+      "description": "按工作表导出电子表格报告或单元格 JSON Lines。",
+      "source": "https://github.com/ChrisPappalardo/eparse",
+      "script": "work/skill-lab-v2/skillgenbench/skills/excel-eparse/scripts/excel.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/excel-eparse/SKILL.md",
+      "inputType": "Excel 工作簿",
+      "outputType": "TXT / JSONL"
+    },
+    {
+      "id": "gtb-neurokit-signals",
+      "title": "GitTaskBench · NeuroKit2 信号处理",
+      "description": "提取 EDA、ECG 与呼吸指标。",
+      "source": "https://github.com/neuropsychology/NeuroKit",
+      "script": "work/skill-lab-v2/skillgenbench/skills/neurokit-signals/scripts/signals.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/neurokit-signals/SKILL.md",
+      "inputType": "采样信号 CSV",
+      "outputType": "指标 CSV"
+    },
+    {
+      "id": "gtb-inspect-faker-schema",
+      "title": "读取合成表格约定",
+      "description": "读取合成表格约定",
+      "source": "课程工作流构件",
+      "inputType": "题目指定的行数与列映射，无文件输入",
+      "outputType": "题目指定的行数与列映射，无文件输入",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-faker-csv",
+      "title": "验收合成 CSV",
+      "description": "验收合成 CSV",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 CSV",
+      "outputType": "UTF-8 CSV",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-pdf-pages",
+      "title": "识别 PDF 页面结构",
+      "description": "识别 PDF 页面结构",
+      "source": "课程工作流构件",
+      "inputType": "PDF",
+      "outputType": "PDF",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-pypdf2-01",
+      "title": "验收 PDF 文本",
+      "description": "验收 PDF 文本",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 TXT",
+      "outputType": "UTF-8 TXT",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-pypdf2-02",
+      "title": "验收单页 PDF",
+      "description": "验收单页 PDF",
+      "source": "课程工作流构件",
+      "inputType": "单页 PDF 目录",
+      "outputType": "单页 PDF 目录",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-eparse-03",
+      "title": "检查输入 · Excel 工作簿导出 JSON",
+      "description": "检查输入 · Excel 工作簿导出 JSON",
+      "source": "课程工作流构件",
+      "inputType": "Excel 工作簿",
+      "outputType": "Excel 工作簿",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-eparse-03",
+      "title": "验收输出 · Excel 工作簿导出 JSON",
+      "description": "验收输出 · Excel 工作簿导出 JSON",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 JSON",
+      "outputType": "UTF-8 JSON",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-excel-workbook-json",
+      "title": "Excel 工作簿导出 JSON",
+      "description": "Excel 工作簿导出 JSON",
+      "source": "https://github.com/ChrisPappalardo/eparse",
+      "inputType": "Excel 工作簿",
+      "outputType": "UTF-8 JSON",
+      "script": "work/skill-lab-v2/skillgenbench/skills/excel-eparse/scripts/excel.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/excel-eparse/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-neurokit-01",
+      "title": "检查输入 · 提取 EDA 的 SCR 起点、峰值位置与高度",
+      "description": "检查输入 · 提取 EDA 的 SCR 起点、峰值位置与高度",
+      "source": "课程工作流构件",
+      "inputType": "生理信号 CSV",
+      "outputType": "生理信号 CSV",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-neurokit-01",
+      "title": "验收输出 · 提取 EDA 的 SCR 起点、峰值位置与高度",
+      "description": "验收输出 · 提取 EDA 的 SCR 起点、峰值位置与高度",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 CSV",
+      "outputType": "UTF-8 CSV",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-neurokit-scr-events",
+      "title": "提取 EDA 的 SCR 起点、峰值位置与高度",
+      "description": "提取 EDA 的 SCR 起点、峰值位置与高度",
+      "source": "https://github.com/neuropsychology/NeuroKit",
+      "inputType": "生理信号 CSV",
+      "outputType": "UTF-8 CSV",
+      "script": "work/skill-lab-v2/skillgenbench/skills/neurokit-signals/scripts/signals.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/neurokit-signals/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-faker-03",
+      "title": "检查输入 · 替换为合成文本",
+      "description": "检查输入 · 替换为合成文本",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-faker-03",
+      "title": "验收输出 · 替换为合成文本",
+      "description": "验收输出 · 替换为合成文本",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-faker-text",
+      "title": "替换为合成文本",
+      "description": "替换为合成文本",
+      "source": "https://github.com/joke2k/faker",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/gittaskbench/skills/faker-tabular-fixtures/scripts/generate.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/faker-tabular-fixtures/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-pdfplumber-01",
+      "title": "检查输入 · 导出 PDF 首页文本",
+      "description": "检查输入 · 导出 PDF 首页文本",
+      "source": "课程工作流构件",
+      "inputType": "PDF 文档",
+      "outputType": "PDF 文档",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-pdfplumber-01",
+      "title": "验收输出 · 导出 PDF 首页文本",
+      "description": "验收输出 · 导出 PDF 首页文本",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-pdfplumber-text",
+      "title": "导出 PDF 首页文本",
+      "description": "导出 PDF 首页文本",
+      "source": "https://github.com/jsvine/pdfplumber",
+      "inputType": "PDF 文档",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/gittaskbench/skills/pdfplumber-extraction/scripts/extract.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/pdfplumber-extraction/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-pdfplumber-02",
+      "title": "检查输入 · 提取 PDF 前两页表格",
+      "description": "检查输入 · 提取 PDF 前两页表格",
+      "source": "课程工作流构件",
+      "inputType": "PDF 文档",
+      "outputType": "PDF 文档",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-pdfplumber-02",
+      "title": "验收输出 · 提取 PDF 前两页表格",
+      "description": "验收输出 · 提取 PDF 前两页表格",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 CSV",
+      "outputType": "UTF-8 CSV",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-pdfplumber-tables",
+      "title": "提取 PDF 前两页表格",
+      "description": "提取 PDF 前两页表格",
+      "source": "https://github.com/jsvine/pdfplumber",
+      "inputType": "PDF 文档",
+      "outputType": "UTF-8 CSV",
+      "script": "work/skill-lab-v2/gittaskbench/skills/pdfplumber-extraction/scripts/extract.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/pdfplumber-extraction/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-pdfplumber-03",
+      "title": "检查输入 · 提取 PDF 中的电子邮件地址",
+      "description": "检查输入 · 提取 PDF 中的电子邮件地址",
+      "source": "课程工作流构件",
+      "inputType": "PDF 文档",
+      "outputType": "PDF 文档",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-pdfplumber-03",
+      "title": "验收输出 · 提取 PDF 中的电子邮件地址",
+      "description": "验收输出 · 提取 PDF 中的电子邮件地址",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-pdfplumber-emails",
+      "title": "提取 PDF 中的电子邮件地址",
+      "description": "提取 PDF 中的电子邮件地址",
+      "source": "https://github.com/jsvine/pdfplumber",
+      "inputType": "PDF 文档",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/gittaskbench/skills/pdfplumber-extraction/scripts/extract.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/pdfplumber-extraction/SKILL.md"
+    },
+    {
+      "id": "gtb-inspect-trafilatura-01",
+      "title": "检查输入 · 提取网页文章正文",
+      "description": "检查输入 · 提取网页文章正文",
+      "source": "课程工作流构件",
+      "inputType": "公开 HTML 快照及 URL",
+      "outputType": "公开 HTML 快照及 URL",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "gtb-verify-trafilatura-01",
+      "title": "验收输出 · 提取网页文章正文",
+      "description": "验收输出 · 提取网页文章正文",
+      "source": "课程工作流构件",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "gtb-web-article",
+      "title": "提取网页文章正文",
+      "description": "提取网页文章正文",
+      "source": "https://github.com/adbar/trafilatura",
+      "inputType": "公开 HTML 快照及 URL",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/gittaskbench/skills/extract-web-article/scripts/article.py",
+      "skillFile": "work/skill-lab-v2/gittaskbench/skills/extract-web-article/SKILL.md"
+    }
+  ]
+}

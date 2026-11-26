@@ -1,0 +1,70 @@
+{
+  "caseId": "Eparse_03",
+  "expectedOutput": "workbook.json",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Eparse_03",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-eparse-03",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-excel-workbook-json",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-eparse-03",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": null,
+        "status": "request_limit",
+        "apiRequests": 6
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "9de9eac4-cfd3-4ba4-a353-bb6c46f3ec62",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "Eparse_03_input.xlsx": "6f7de3fdf05ea5fa93d57c6d6cb7f904b569eb37b939c87464db0c59752470a9"
+    },
+    "artifactSha256": "9fb180c43ce0361e5a24f948d3a53b23cc377d9f44f7dea32a68824f1989516b",
+    "graderSha256": "424e71b1ede75442c2babde92732b7e316d40dc9de9ff57ac27d5194de93c6d3"
+  }
+}

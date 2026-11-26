@@ -1,0 +1,71 @@
+{
+  "caseId": "Faker_01",
+  "expectedOutput": "users.csv",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-faker-schema",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "faker-tabular-fixtures",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-faker-csv",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3,
+        "finishReason": "finished"
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 5,
+        "finishReason": "finished"
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4,
+        "finishReason": "finished"
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "66483807-1e77-45b5-a48b-01c8fa6cd4cf",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {},
+    "artifactSha256": "805a9dcfe5d3c75cd4f94b826e29e1090797382f2e7d0559791ab32170a9eef0",
+    "graderSha256": "7f9a65130952027c2ccbf3e6670d5dd5b17b76c339db301c27f7ad344f0bff71"
+  }
+}

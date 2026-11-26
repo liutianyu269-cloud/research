@@ -1,0 +1,71 @@
+{
+  "caseId": "Faker_02",
+  "expectedOutput": "companies.csv",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-faker-schema",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "faker-tabular-fixtures",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-faker-csv",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3,
+        "finishReason": "finished"
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4,
+        "finishReason": "finished"
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3,
+        "finishReason": "finished"
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "2983c5e7-dfc5-4e6a-a36b-8dacdcac1259",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {},
+    "artifactSha256": "20229b98f43625741b070fb04d91e0ff9cd4735b1df6d7b5cf2f9733ce6988cd",
+    "graderSha256": "f3fe9463033c52c9f257e8991f9bbdcaf846b6de9945f9ef4971f5eefe6b31d1"
+  }
+}

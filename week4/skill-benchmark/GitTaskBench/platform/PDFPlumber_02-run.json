@@ -1,0 +1,107 @@
+{
+  "id": "ff0686df-9e84-4aad-8e84-e0d4ca13c3a9",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/ff0686df-9e84-4aad-8e84-e0d4ca13c3a9",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PDFPlumber_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdfplumber-02",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-pdfplumber-tables",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pdfplumber-02",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-pdfplumber-02",
+      "status": "passed",
+      "elapsedMs": 381,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-pdfplumber-02",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/PDFPlumber_02",
+      "outputType": "PDF 文档",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/ff0686df-9e84-4aad-8e84-e0d4ca13c3a9/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 18,
+          "sha256": "63be73d4296c38ea4cdcadaf7a7f61e1b521c712cd9f3407279409266690578a"
+        },
+        {
+          "path": "PDFPlumber_02_input.pdf",
+          "bytes": 478619,
+          "sha256": "f52f80bd057313c8abec2e854c65c4d96658e72744c836e81d3048d8a5861046"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-pdfplumber-tables",
+      "status": "passed",
+      "elapsedMs": 790,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-pdfplumber-tables",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/ff0686df-9e84-4aad-8e84-e0d4ca13c3a9/node-inspect/output",
+      "outputType": "UTF-8 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/ff0686df-9e84-4aad-8e84-e0d4ca13c3a9/node-process/output",
+      "artifacts": [
+        {
+          "path": "tables.csv",
+          "bytes": 8526,
+          "sha256": "7f831ac46a357c8ad27c0ac3104ca1395eb0d40b0c2b9b11ef38732ec8a7286f"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-pdfplumber-02",
+      "status": "passed",
+      "elapsedMs": 233,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-pdfplumber-02",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/ff0686df-9e84-4aad-8e84-e0d4ca13c3a9/node-process/output",
+      "outputType": "UTF-8 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/ff0686df-9e84-4aad-8e84-e0d4ca13c3a9/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 22,
+          "sha256": "20ded31b63a546c8814b7fa7bbe78db33b734b8d640ceefff0412209bd28372a"
+        },
+        {
+          "path": "tables.csv",
+          "bytes": 8526,
+          "sha256": "7f831ac46a357c8ad27c0ac3104ca1395eb0d40b0c2b9b11ef38732ec8a7286f"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,304 @@
+{
+  "dataset": "SkillGenBench",
+  "cases": [
+    {
+      "id": "Eparse_gtb01",
+      "title": "导出工作簿工作表报告",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-2/trials/Eparse_gtb01__with-skill__001/task/skillgenbench-eparse_gtb01/context/input",
+      "expectedOutput": "eparse_report.txt",
+      "skillId": "excel-eparse",
+      "skillArgument": "Eparse_gtb01",
+      "outputType": "UTF-8 文本"
+    },
+    {
+      "id": "Eparse_gtb02",
+      "title": "逐单元格导出 JSON Lines",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-3/trials/Eparse_gtb02__with-skill__001/task/skillgenbench-eparse_gtb02/context/input",
+      "expectedOutput": "eparse_cells.jsonl",
+      "skillId": "excel-eparse",
+      "skillArgument": "Eparse_gtb02",
+      "outputType": "JSON Lines"
+    },
+    {
+      "id": "MoviePy_gen01",
+      "title": "等比缩放与居中补边",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-2/trials/MoviePy_gen01__with-skill__001/task/skillgenbench-moviepy_gen01/context/input",
+      "expectedOutput": "resized_output.mp4",
+      "skillId": "moviepy-video",
+      "skillArgument": "MoviePy_gen01",
+      "outputType": "MP4 视频"
+    },
+    {
+      "id": "NeuroKit_gtb01",
+      "title": "汇总 EDA 的 SCR 与 tonic 指标",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-3/trials/NeuroKit_gtb01__with-skill__001/task/skillgenbench-neurokit_gtb01/context/input",
+      "expectedOutput": "eda_scr_metrics.csv",
+      "skillId": "neurokit-signals",
+      "skillArgument": "NeuroKit_gtb01",
+      "outputType": "CSV 指标表"
+    },
+    {
+      "id": "NeuroKit_gtb02",
+      "title": "导出 ECG 的 R/P 峰位置",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-3/trials/NeuroKit_gtb02__with-skill__001/task/skillgenbench-neurokit_gtb02/context/input",
+      "expectedOutput": "ecg_peaks.csv",
+      "skillId": "neurokit-signals",
+      "skillArgument": "NeuroKit_gtb02",
+      "outputType": "CSV 指标表"
+    },
+    {
+      "id": "NeuroKit_gtb03",
+      "title": "提取呼吸峰与呼吸频率",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-1/trials/NeuroKit_gtb03__with-skill__001/task/skillgenbench-neurokit_gtb03/context/input",
+      "expectedOutput": "eog_metrics.csv",
+      "skillId": "neurokit-signals",
+      "skillArgument": "NeuroKit_gtb03",
+      "outputType": "CSV 指标表"
+    },
+    {
+      "id": "Pillow_gen01",
+      "title": "按 HSV 范围生成二值掩膜",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-2/trials/Pillow_gen01__with-skill__001/task/skillgenbench-pillow_gen01/context/input",
+      "expectedOutput": "color_mask.png",
+      "skillId": "pillow-images",
+      "skillArgument": "Pillow_gen01",
+      "outputType": "PNG 图像"
+    },
+    {
+      "id": "PyPDF2_gtb03",
+      "title": "导出 PDF 文档元数据",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-1/trials/PyPDF2_gtb03__with-skill__001/task/skillgenbench-pypdf2_gtb03/context/input",
+      "expectedOutput": "pdf_metadata.json",
+      "skillId": "pdf-inspect",
+      "skillArgument": "PyPDF2_gtb03",
+      "outputType": "JSON"
+    },
+    {
+      "id": "ScikitImage_gen05",
+      "title": "为二值掩膜连通区域着色",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-1/trials/ScikitImage_gen05__with-skill__001/task/skillgenbench-scikitimage_gen05/context/input",
+      "expectedOutput": "labeled_components.png",
+      "skillId": "scikitimage-masks",
+      "skillArgument": "ScikitImage_gen05",
+      "outputType": "PNG 图像"
+    },
+    {
+      "id": "ScikitImage_gen06",
+      "title": "用原始灰度计算 Otsu 掩膜",
+      "inputRoot": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-3/trials/ScikitImage_gen06__with-skill__001/task/skillgenbench-scikitimage_gen06/context/input",
+      "expectedOutput": "mask.png",
+      "skillId": "scikitimage-masks",
+      "skillArgument": "ScikitImage_gen06",
+      "outputType": "PNG 图像"
+    },
+    {
+      "id": "Pillow_gen04",
+      "title": "保持宽高比下采样至 512 像素宽",
+      "inputRoot": "work/skill-lab-v2/skillgenbench/inputs/Pillow_gen04",
+      "expectedOutput": "downscaled.png",
+      "skillId": "pillow-images",
+      "skillArgument": "Pillow_gen04",
+      "outputType": "PNG 图像"
+    },
+    {
+      "id": "PyPDF2_gen01",
+      "title": "提取 PDF 第 8 至 15 页",
+      "inputRoot": "work/skill-lab-v2/skillgenbench/inputs/PyPDF2_gen01",
+      "expectedOutput": "range.pdf",
+      "skillId": "pdf-inspect",
+      "skillArgument": "PyPDF2_gen01",
+      "outputType": "PDF 文档"
+    },
+    {
+      "id": "ScikitImage_gen04",
+      "title": "对灰度原图自动二值化",
+      "inputRoot": "work/skill-lab-v2/skillgenbench/inputs/ScikitImage_gen04",
+      "expectedOutput": "mask.png",
+      "skillId": "scikitimage-masks",
+      "skillArgument": "ScikitImage_gen04",
+      "outputType": "PNG 图像"
+    }
+  ],
+  "skills": [
+    {
+      "id": "excel-eparse",
+      "title": "Eparse 工作簿导出",
+      "description": "按工作表导出电子表格报告或单元格 JSON Lines。",
+      "source": "https://github.com/ChrisPappalardo/eparse",
+      "script": "work/skill-lab-v2/skillgenbench/skills/excel-eparse/scripts/excel.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/excel-eparse/SKILL.md",
+      "inputType": "Excel 工作簿",
+      "outputType": "TXT / JSONL"
+    },
+    {
+      "id": "moviepy-video",
+      "title": "MoviePy 视频变换",
+      "description": "保留画幅补边、同步淡入淡出、全程文字水印。",
+      "source": "https://github.com/Zulko/moviepy",
+      "script": "work/skill-lab-v2/skillgenbench/skills/moviepy-video/scripts/video.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/moviepy-video/SKILL.md",
+      "inputType": "WebM 视频",
+      "outputType": "MP4"
+    },
+    {
+      "id": "neurokit-signals",
+      "title": "NeuroKit2 信号处理",
+      "description": "提取 EDA、ECG 与呼吸指标。",
+      "source": "https://github.com/neuropsychology/NeuroKit",
+      "script": "work/skill-lab-v2/skillgenbench/skills/neurokit-signals/scripts/signals.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/neurokit-signals/SKILL.md",
+      "inputType": "采样信号 CSV",
+      "outputType": "指标 CSV"
+    },
+    {
+      "id": "pillow-images",
+      "title": "Pillow 图像变换",
+      "description": "生成 HSV 掩膜、保留透明索引以及等比下采样。",
+      "source": "https://github.com/python-pillow/Pillow",
+      "script": "work/skill-lab-v2/skillgenbench/skills/pillow-images/scripts/images.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/pillow-images/SKILL.md",
+      "inputType": "JPEG / PNG",
+      "outputType": "PNG / GIF"
+    },
+    {
+      "id": "pdf-inspect",
+      "title": "PDF 元数据与页提取",
+      "description": "导出 PDF 元数据，或提取页面并保留几何参数。",
+      "source": "https://github.com/py-pdf/pypdf",
+      "script": "work/skill-lab-v2/skillgenbench/skills/pdf-inspect/scripts/pdf.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/pdf-inspect/SKILL.md",
+      "inputType": "PDF 文档",
+      "outputType": "JSON / PDF"
+    },
+    {
+      "id": "scikitimage-masks",
+      "title": "scikit-image 图像分割",
+      "description": "计算 Otsu 阈值，或为二值掩膜的连通区域着色。",
+      "source": "https://github.com/scikit-image/scikit-image",
+      "script": "work/skill-lab-v2/skillgenbench/skills/scikitimage-masks/scripts/masks.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/skills/scikitimage-masks/SKILL.md",
+      "inputType": "PNG 图像",
+      "outputType": "PNG"
+    },
+    {
+      "id": "parse-workbook",
+      "title": "解析工作簿结构",
+      "description": "打开原始输入，识别结构或采样属性，并转发同一份输入。",
+      "source": "课程项目的工作流构件",
+      "inputType": "Excel 工作簿",
+      "outputType": "Excel 工作簿",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "check-text-report",
+      "title": "验收工作表报告",
+      "description": "重新打开上一步的产物，检查格式和关键属性，保留原产物与验收记录。",
+      "source": "课程项目的工作流构件",
+      "inputType": "UTF-8 文本",
+      "outputType": "UTF-8 文本",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "check-cell-jsonl",
+      "title": "验收单元格 JSON Lines",
+      "description": "重新打开上一步的产物，检查格式和关键属性，保留原产物与验收记录。",
+      "source": "课程项目的工作流构件",
+      "inputType": "JSON Lines",
+      "outputType": "JSON Lines",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "identify-video",
+      "title": "识别视频尺寸与帧率",
+      "description": "打开原始输入，识别结构或采样属性，并转发同一份输入。",
+      "source": "课程项目的工作流构件",
+      "inputType": "WebM 视频",
+      "outputType": "WebM 视频",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "check-letterbox-video",
+      "title": "验收补边后的视频",
+      "description": "重新打开上一步的产物，检查格式和关键属性，保留原产物与验收记录。",
+      "source": "课程项目的工作流构件",
+      "inputType": "MP4 视频",
+      "outputType": "MP4 视频",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "identify-signal",
+      "title": "识别采样信号与通道",
+      "description": "打开原始输入，识别结构或采样属性，并转发同一份输入。",
+      "source": "课程项目的工作流构件",
+      "inputType": "采样信号 CSV",
+      "outputType": "采样信号 CSV",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "check-signal-csv",
+      "title": "验收信号指标 CSV",
+      "description": "重新打开上一步的产物，检查格式和关键属性，保留原产物与验收记录。",
+      "source": "课程项目的工作流构件",
+      "inputType": "CSV 指标表",
+      "outputType": "CSV 指标表",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "identify-color-image",
+      "title": "识别原图尺寸与颜色模式",
+      "description": "打开原始输入，识别结构或采样属性，并转发同一份输入。",
+      "source": "课程项目的工作流构件",
+      "inputType": "JPEG / PNG",
+      "outputType": "JPEG / PNG",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "check-png-mask",
+      "title": "验收 PNG 掩膜",
+      "description": "重新打开上一步的产物，检查格式和关键属性，保留原产物与验收记录。",
+      "source": "课程项目的工作流构件",
+      "inputType": "PNG 图像",
+      "outputType": "PNG 图像",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "parse-pdf",
+      "title": "解析 PDF 文档信息",
+      "description": "打开原始输入，识别结构或采样属性，并转发同一份输入。",
+      "source": "课程项目的工作流构件",
+      "inputType": "PDF 文档",
+      "outputType": "PDF 文档",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    },
+    {
+      "id": "check-metadata-json",
+      "title": "验收 PDF 元数据 JSON",
+      "description": "重新打开上一步的产物，检查格式和关键属性，保留原产物与验收记录。",
+      "source": "课程项目的工作流构件",
+      "inputType": "JSON",
+      "outputType": "JSON",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/validate_artifact.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/validate/SKILL.md"
+    },
+    {
+      "id": "identify-mask-input",
+      "title": "识别待处理的掩膜图像",
+      "description": "打开原始输入，识别结构或采样属性，并转发同一份输入。",
+      "source": "课程项目的工作流构件",
+      "inputType": "PNG 图像",
+      "outputType": "PNG 图像",
+      "script": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect_input.py",
+      "skillFile": "work/skill-lab-v2/skillgenbench/workflow-stages/inspect/SKILL.md"
+    }
+  ]
+}

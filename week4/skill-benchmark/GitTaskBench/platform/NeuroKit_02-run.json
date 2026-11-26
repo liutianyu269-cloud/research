@@ -1,0 +1,107 @@
+{
+  "id": "03044153-0c72-468e-933a-96ecfa1f9ac0",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/03044153-0c72-468e-933a-96ecfa1f9ac0",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "NeuroKit_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "identify-signal",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-neurokit-signals",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-signal-csv",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-signal",
+      "status": "passed",
+      "elapsedMs": 205,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/identify-signal",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/NeuroKit_02",
+      "outputType": "采样信号 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/03044153-0c72-468e-933a-96ecfa1f9ac0/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 74,
+          "sha256": "4a84ca48a270617efb784de58ab9a82a12191d086665e863488d963b4d0bbaeb"
+        },
+        {
+          "path": "NeuroKit_02_input_01.csv",
+          "bytes": 30433,
+          "sha256": "b8033623792b31d52744542f79cd10eadb1de4de0231482e87dcb26b605a2b6b"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-neurokit-signals",
+      "status": "passed",
+      "elapsedMs": 2067,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-neurokit-signals",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/03044153-0c72-468e-933a-96ecfa1f9ac0/node-inspect/output",
+      "outputType": "CSV 指标表",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/03044153-0c72-468e-933a-96ecfa1f9ac0/node-process/output",
+      "artifacts": [
+        {
+          "path": "ecg_peaks.csv",
+          "bytes": 126,
+          "sha256": "451563defa8fd0790fb64861e45ce57e0d670e9382c9b2afc1bb39654ffde59f"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-signal-csv",
+      "status": "passed",
+      "elapsedMs": 228,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-signal-csv",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/03044153-0c72-468e-933a-96ecfa1f9ac0/node-process/output",
+      "outputType": "CSV 指标表",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/03044153-0c72-468e-933a-96ecfa1f9ac0/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 33,
+          "sha256": "018b520b1ff136594b1f46f8c0e9688f7aeba8ea9cd965c1670192f8a4d36d2b"
+        },
+        {
+          "path": "ecg_peaks.csv",
+          "bytes": 126,
+          "sha256": "451563defa8fd0790fb64861e45ce57e0d670e9382c9b2afc1bb39654ffde59f"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

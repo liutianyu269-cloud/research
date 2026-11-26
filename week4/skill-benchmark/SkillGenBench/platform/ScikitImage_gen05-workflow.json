@@ -1,0 +1,32 @@
+{
+  "dataset": "skillgenbench",
+  "caseId": "ScikitImage_gen05",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-mask-input",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "scikitimage-masks",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-png-mask",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

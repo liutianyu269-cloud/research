@@ -1,0 +1,32 @@
+{
+  "dataset": "skillgenbench",
+  "caseId": "Pillow_gen01",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-color-image",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "pillow-images",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-png-mask",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

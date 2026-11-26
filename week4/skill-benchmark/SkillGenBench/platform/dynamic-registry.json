@@ -1,0 +1,22 @@
+{
+  "skillId": "pdf-inspect",
+  "before": {
+    "loaded": true,
+    "generation": 1,
+    "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pdf-inspect",
+    "session": "aba99cf9-b9f2-4c2d-9411-5e25a37baa3f"
+  },
+  "revoked": {
+    "loaded": false,
+    "generation": 2,
+    "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pdf-inspect",
+    "session": "aba99cf9-b9f2-4c2d-9411-5e25a37baa3f"
+  },
+  "restored": {
+    "loaded": true,
+    "generation": 3,
+    "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pdf-inspect",
+    "session": "aba99cf9-b9f2-4c2d-9411-5e25a37baa3f"
+  },
+  "registeredProjectSkills": 48
+}

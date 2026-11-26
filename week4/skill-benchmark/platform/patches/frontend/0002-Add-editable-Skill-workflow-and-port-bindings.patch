@@ -1,0 +1,564 @@
+From 313235f9a5a87779cd3359cc408130ea63552cae Mon Sep 17 00:00:00 2001
+From: Codex <codex@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 09:48:47 +0800
+Subject: [PATCH 2/2] Add editable Skill workflow and port bindings
+
+---
+ app/liutianyu-skill-lab/lab.tsx               |   2 +
+ app/liutianyu-skill-lab/workflow/page.tsx     |  11 +
+ .../workflow/workbench.module.css             | 135 +++++++
+ .../workflow/workbench.tsx                    | 365 ++++++++++++++++++
+ 4 files changed, 513 insertions(+)
+ create mode 100644 app/liutianyu-skill-lab/workflow/page.tsx
+ create mode 100644 app/liutianyu-skill-lab/workflow/workbench.module.css
+ create mode 100644 app/liutianyu-skill-lab/workflow/workbench.tsx
+
+diff --git a/app/liutianyu-skill-lab/lab.tsx b/app/liutianyu-skill-lab/lab.tsx
+index 656dd87..bf6a619 100644
+--- a/app/liutianyu-skill-lab/lab.tsx
++++ b/app/liutianyu-skill-lab/lab.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+ import dynamic from "next/dynamic";
++import Link from "next/link";
+ import { useEffect, useMemo, useState } from "react";
+ import type { Node } from "./workflow-canvas";
+ import recorded from "./recorded.json";
+@@ -126,6 +127,7 @@ export default function ManualSkillLab() {
+           <span className={styles.crumb}>刘添予 / 人工编排</span>
+         </div>
+         <div className={styles.headerRight}>
++          <Link className={styles.headerButton} href="/liutianyu-skill-lab/workflow">人工编排 v2</Link>
+           <span className={styles.connection} data-online={online}><i />{online ? "已连接课程后端" : "本地记录"}</span>
+           <button className={styles.headerButton} onClick={() => void operate("list")} disabled={pending != null}>刷新连接</button>
+         </div>
+diff --git a/app/liutianyu-skill-lab/workflow/page.tsx b/app/liutianyu-skill-lab/workflow/page.tsx
+new file mode 100644
+index 0000000..07c4f6c
+--- /dev/null
++++ b/app/liutianyu-skill-lab/workflow/page.tsx
+@@ -0,0 +1,11 @@
++import type { Metadata } from "next";
++import WorkflowWorkbench from "./workbench";
++
++export const metadata: Metadata = {
++  title: "Skill 工作台 · 人工编排",
++  description: "选择回归场景，装配课程 Skill，连接端口并查看运行证据。",
++};
++
++export default function Page() {
++  return <WorkflowWorkbench />;
++}
+diff --git a/app/liutianyu-skill-lab/workflow/workbench.module.css b/app/liutianyu-skill-lab/workflow/workbench.module.css
+new file mode 100644
+index 0000000..b85d09b
+--- /dev/null
++++ b/app/liutianyu-skill-lab/workflow/workbench.module.css
+@@ -0,0 +1,135 @@
++.app {
++  --ink: #162329;
++  --muted: #516269;
++  --line: #d9e2e2;
++  --paper: #fff;
++  --accent: #116358;
++  min-height: 100vh;
++  background: #f3f6f5;
++  color: var(--ink);
++  color-scheme: light;
++  font-family: var(--font-geist-sans), "Segoe UI", "Microsoft YaHei", sans-serif;
++  font-size: 14px;
++}
++
++.app button, .app select {
++  border: 1px solid var(--line);
++  border-radius: 7px;
++  min-height: 34px;
++  color: var(--ink);
++  background: var(--paper);
++}
++
++.app button { cursor: pointer; padding: 5px 10px; }
++.app button:hover:not(:disabled), .app select:hover:not(:disabled) { border-color: #6b9690; }
++.app button:focus-visible, .app a:focus-visible, .app select:focus-visible, .app summary:focus-visible {
++  outline: 2px solid #126e65;
++  outline-offset: 3px;
++}
++.app button:disabled, .app select:disabled { opacity: .45; cursor: default; }
++.app select { padding: 5px 8px; width: 100%; }
++.app code { font-family: var(--font-geist-mono), Consolas, monospace; font-size: .86em; overflow-wrap: anywhere; }
++
++.bar { background: #172827; color: #eef7f5; }
++.barInner, .shell { width: min(1260px, calc(100% - 56px)); margin: 0 auto; }
++.barInner, .heading, .panelHead, .skillHead, .skillButtons, .nodeHead, .toolbar, .trace summary {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 12px;
++}
++
++.barInner { min-height: 66px; }
++.identity, .barActions { display: flex; align-items: center; gap: 12px; }
++.identity { font-size: 17px; font-weight: 720; }
++.identity > span { background: #d6f1e7; color: #17584f; border-radius: 8px; line-height: 31px; width: 31px; text-align: center; }
++.identity > small { border-left: 1px solid #6a837d; padding-left: 12px; color: #c6d8d2; font-size: 12px; font-weight: 500; }
++.barActions a { color: #e7f1ee; text-underline-offset: 4px; }
++.barActions a:hover { text-decoration: underline; }
++.barActions button { background: #223d39; color: #f2f8f6; border-color: #56736e; }
++.shell { padding: 34px 0 55px; }
++.heading { margin-bottom: 23px; align-items: end; }
++.heading h1 { margin: 0; font-size: clamp(30px, 5vw, 44px); line-height: 1.15; font-weight: 760; letter-spacing: -.04em; }
++.heading p { color: var(--muted); margin-top: 10px; }
++.connection { display: flex; gap: 7px; align-items: center; white-space: nowrap; color: var(--muted); }
++.connection i { width: 8px; height: 8px; border-radius: 50%; background: #839291; }
++.connection[data-online="true"] i { background: #1a876b; }
++
++.scenario, .panel { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); min-width: 0; }
++.scenario { display: grid; grid-template-columns: 1fr minmax(0, 2.1fr) minmax(0, 1.3fr); align-items: end; gap: 15px; padding: 15px; margin-bottom: 17px; }
++.scenario label, .expected span, .binding label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 12px; font-weight: 600; }
++.expected code { background: #edf4f1; color: #215b50; border-radius: 4px; display: inline-block; line-height: 24px; padding: 0 6px; margin-bottom: 4px; }
++.grid { display: grid; grid-template-columns: minmax(280px, .92fr) minmax(0, 1.75fr); gap: 16px; align-items: start; }
++.panelHead { padding: 15px 17px; border-bottom: 1px solid var(--line); }
++.panelHead h2 { margin: 0; font-size: 16px; font-weight: 700; }
++.panelHead > span, .skill p { color: var(--muted); }
++.panelHead > span { font-size: 12px; }
++.catalog, .editor { padding: 14px; }
++.catalog { display: grid; gap: 10px; }
++.skill, .node { border: 1px solid var(--line); border-radius: 9px; padding: 12px; min-width: 0; }
++.skill h3 { margin: 0; font-size: 14px; font-weight: 700; }
++.skill p { margin: 8px 0; line-height: 1.5; font-size: 12px; }
++.pill { flex: none; font-weight: 600; border-radius: 100px; padding: 3px 7px; background: #edf0ef; color: #475956; font-size: 11px; }
++.pill[data-loaded="true"] { background: #e1f2eb; color: #14624f; }
++.ports { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 12px; }
++.ports code, .source > code { color: #225b53; background: #ecf4f2; border-radius: 4px; padding: 3px 5px; }
++.metadata { margin-top: 9px; color: var(--muted); font-size: 12px; }
++.metadata summary { cursor: pointer; }
++.metadata dl, .trace dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 10px; margin: 8px 0; }
++.metadata dd, .trace dd { margin: 0; overflow-wrap: anywhere; }
++.skillButtons { justify-content: flex-start; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
++.skillButtons button { min-height: 29px; font-size: 12px; }
++.skillButtons .add { margin-left: auto; color: var(--accent); border-color: #90b8af; font-weight: 650; }
++.editor { min-height: 260px; background: #fafcfb; }
++.source { border: 1px solid #c4ddd6; background: #eff7f4; border-radius: 9px; padding: 10px 12px; display: flex; align-items: center; gap: 11px; }
++.source > div { flex: 1; min-width: 0; }
++.source strong, .source > div code { display: block; }
++.portMark { color: var(--accent); font-size: 24px; line-height: 1; }
++.empty { color: var(--muted); padding: 38px 10px; text-align: center; }
++.nodes { list-style: none; margin: 0; padding: 0 0 0 13px; }
++.node { margin-top: 14px; position: relative; background: var(--paper); }
++.node::before { content: ""; position: absolute; left: 18px; top: -15px; height: 14px; border-left: 2px solid #a5c1ba; }
++.nodeHead { margin-bottom: 10px; align-items: flex-start; }
++.nodeHead > div:first-child { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
++.nodeHead small { color: var(--accent); font-weight: 700; }
++.nodeButtons { display: flex; gap: 5px; }
++.nodeButtons button { min-height: 27px; font-size: 12px; padding: 2px 7px; }
++.binding { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 8px; align-items: center; }
++.binding label { margin: 0; }
++.binding .output, .invalid { grid-column: 2; color: var(--muted); font-size: 12px; }
++.binding .invalid { color: #973d24; }
++.toolbar { border-top: 1px solid var(--line); padding: 13px 15px; flex-wrap: wrap; }
++.toolbar > div { display: flex; gap: 7px; flex-wrap: wrap; }
++.toolbar .primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 670; }
++.toolbar .primary:hover:not(:disabled) { background: #0a4f46; }
++.hint { margin: 0 15px 14px; color: var(--muted); font-size: 12px; }
++.notice, .error { border: 1px solid #c2dbd4; padding: 9px 11px; border-radius: 7px; background: #edf7f3; color: #1a6153; margin: 0 0 12px; }
++.error { border-color: #e9c5b9; background: #fff3ee; color: #873722; white-space: pre-wrap; overflow-wrap: anywhere; }
++.grid + .panel { margin-top: 16px; }
++.results { padding: 13px 15px; }
++.resultLocation { overflow-wrap: anywhere; margin-bottom: 10px; }
++.resultLocation span { color: var(--muted); margin-right: 6px; }
++.trace { border-top: 1px solid var(--line); padding: 10px 0; }
++.trace summary { cursor: pointer; }
++.trace summary span, .trace dt { color: var(--muted); font-size: 12px; }
++.files { overflow: auto; }
++.files table { border-collapse: collapse; width: 100%; }
++.files th, .files td { text-align: left; padding: 5px; border-bottom: 1px solid var(--line); }
++.files th { color: var(--muted); font-size: 12px; }
++
++@media (max-width: 780px) {
++  .barInner, .shell { width: calc(100% - 24px); }
++  .grid { grid-template-columns: 1fr; }
++  .scenario { grid-template-columns: 1fr 1.6fr; }
++  .expected { grid-column: 1 / -1; }
++}
++
++@media (max-width: 480px) {
++  .heading { align-items: flex-start; flex-direction: column; }
++  .identity > small { display: none; }
++  .barActions, .identity { gap: 6px; }
++  .barActions a { font-size: 12px; }
++  .scenario, .binding { grid-template-columns: 1fr; }
++  .binding .output, .invalid { grid-column: 1; }
++  .nodeHead { flex-wrap: wrap; }
++}
+diff --git a/app/liutianyu-skill-lab/workflow/workbench.tsx b/app/liutianyu-skill-lab/workflow/workbench.tsx
+new file mode 100644
+index 0000000..74af0a7
+--- /dev/null
++++ b/app/liutianyu-skill-lab/workflow/workbench.tsx
+@@ -0,0 +1,365 @@
++"use client";
++
++import Link from "next/link";
++import { useEffect, useState } from "react";
++import styles from "./workbench.module.css";
++
++const api = (process.env.NEXT_PUBLIC_LTY_WORKFLOW_BACKEND ?? process.env.NEXT_PUBLIC_LTY_SKILL_BACKEND ?? "http://127.0.0.1:33479") + "/api/skill-lab/v2";
++const savedKey = "liutianyu-skill-lab-v2-workflow";
++const datasetLabels: Record<string, string> = { skillgenbench: "SkillGenBench", gittaskbench: "GitTaskBench" };
++const blank: Workflow = { dataset: "", caseId: "", nodes: [] };
++
++type Skill = {
++  id: string; title: string; description: string | null; source: string | null;
++  script: string | null; skillFile: string | null; inputType: string; outputType: string;
++};
++type Fixture = { id: string; title: string; inputRoot: string; expectedOutput: string; skillId: string; outputType?: string };
++type Dataset = { dataset: string; cases: Fixture[]; skills: Skill[] };
++type Registration = { loaded: boolean; generation: number; flowId: string; session: string };
++type Catalog = { datasets: Dataset[]; skills: Skill[]; registrations: Record<string, Registration> };
++type Binding = { from: "case"; port: "fixtures" } | { from: "node"; nodeId: string; port: "artifact" };
++type Node = { id: string; skillId: string; input: Binding | null };
++type Workflow = { dataset: string; caseId: string; nodes: Node[] };
++type Artifact = { path: string; bytes: number; sha256: string };
++type NodeTrace = {
++  id: string; skillId: string; status: "passed" | "failed"; elapsedMs: number;
++  inputDirectory: string; outputDirectory: string | null; outputType: string;
++  flowId: string | null; generation: number;
++  artifacts: Artifact[]; error: string | null;
++};
++type Run = { id: string; status: "passed" | "failed"; directory: string; nodes: NodeTrace[] };
++type Action = "register" | "revoke" | "reload";
++type Port = { key: string; label: string; type: string; binding: Binding };
++
++const actionLabels: Record<Action, string> = { register: "注册并装配", revoke: "撤销", reload: "重载" };
++
++async function request<T>(path: string, method = "GET", data?: object): Promise<T> {
++  const response = await fetch(api + path, {
++    method,
++    cache: "no-store",
++    headers: data ? { "Content-Type": "application/json" } : undefined,
++    body: data ? JSON.stringify(data) : undefined,
++  });
++  const body = await response.json();
++  if (!response.ok) throw new Error(body.error ?? "课程后端请求失败");
++  return body as T;
++}
++
++function matchingPort(node: Node, ports: Port[]) {
++  const binding = node.input;
++  const key = binding?.from === "node" ? binding.nodeId : binding?.from === "case" ? "fixtures" : "";
++  return ports.find((port) => port.key === key);
++}
++
++function compatible(skill: Skill, port: Port) {
++  return skill.inputType === port.type || (skill.inputType === "*" && port.binding.from === "node");
++}
++
++function restoreWorkflow(catalog: Catalog): Workflow {
++  const fallback = { dataset: catalog.datasets[0]?.dataset ?? "", caseId: catalog.datasets[0]?.cases[0]?.id ?? "", nodes: [] };
++  try {
++    const stored = window.localStorage.getItem(savedKey);
++    if (!stored) return fallback;
++    const draft = JSON.parse(stored) as Workflow;
++    const dataset = catalog.datasets.find((item) => item.dataset === draft.dataset);
++    if (dataset?.cases.some((item) => item.id === draft.caseId) && Array.isArray(draft.nodes) &&
++        draft.nodes.length <= 10 && draft.nodes.every((node) => typeof node.id === "string" &&
++          catalog.skills.some((skill) => skill.id === node.skillId))) {
++      return draft;
++    }
++  } catch {
++    return fallback;
++  }
++  return fallback;
++}
++
++function errorText(error: unknown) {
++  return error instanceof Error ? error.message : "课程后端请求失败";
++}
++
++export default function WorkflowWorkbench() {
++  const [catalog, setCatalog] = useState<Catalog | null>(null);
++  const [workflow, setWorkflow] = useState<Workflow>(blank);
++  const [run, setRun] = useState<Run | null>(null);
++  const [busy, setBusy] = useState("catalog");
++  const [notice, setNotice] = useState("");
++  const [fault, setFault] = useState("");
++  const dataset = catalog?.datasets.find((item) => item.dataset === workflow.dataset);
++  const fixture = dataset?.cases.find((item) => item.id === workflow.caseId);
++  const inputSkill = catalog?.skills.find((item) => item.id === fixture?.skillId);
++  const visibleSkills = [...(dataset?.skills ?? []), ...(catalog?.skills.filter((skill) => !skill.script) ?? [])];
++  const ports: Port[] = inputSkill
++    ? [{ key: "fixtures", label: "场景输入 · fixtures", type: inputSkill.inputType, binding: { from: "case", port: "fixtures" } }]
++    : [];
++  const nodeViews = workflow.nodes.map((node, index) => {
++    const skill = catalog?.skills.find((item) => item.id === node.skillId);
++    const available = skill ? ports.filter((port) => compatible(skill, port)) : [];
++    const binding = matchingPort(node, available);
++    const declaredOutput = fixture && fixture.skillId === skill?.id && fixture.outputType
++      ? fixture.outputType : skill?.outputType;
++    const output = declaredOutput === "$input" ? binding?.type : declaredOutput;
++    if (binding && output) {
++      ports.push({ key: node.id, label: String(index + 1) + ". " + skill?.title + " · artifact", type: output,
++        binding: { from: "node", nodeId: node.id, port: "artifact" } });
++    }
++    return { node, skill, available, binding, output };
++  });
++  const ready = Boolean(fixture && nodeViews.length && nodeViews.every(({ node, binding }) => binding &&
++    catalog?.registrations[node.skillId]?.loaded));
++
++  useEffect(() => {
++    let active = true;
++    request<Catalog>("/catalog").then((value) => {
++      if (!active) return;
++      setCatalog(value);
++      setWorkflow(restoreWorkflow(value));
++    }).catch((error) => {
++      if (active) setFault(errorText(error));
++    }).finally(() => {
++      if (active) setBusy("");
++    });
++    return () => { active = false; };
++  }, []);
++
++  async function refresh() {
++    setBusy("catalog");
++    setFault("");
++    try {
++      const value = await request<Catalog>("/catalog");
++      setCatalog(value);
++      if (!value.datasets.some((item) => item.dataset === workflow.dataset)) {
++        setWorkflow(restoreWorkflow(value));
++      }
++    } catch (error) {
++      setFault(errorText(error));
++    } finally {
++      setBusy("");
++    }
++  }
++
++  function replaceWorkflow(next: Workflow) {
++    setWorkflow(next);
++    setRun(null);
++    setNotice("");
++    setFault("");
++  }
++
++  function changeDataset(id: string) {
++    const selected = catalog?.datasets.find((item) => item.dataset === id);
++    replaceWorkflow({ dataset: id, caseId: selected?.cases[0]?.id ?? "", nodes: [] });
++  }
++
++  function add(skillId: string) {
++    if (workflow.nodes.length >= 10) return;
++    const node = { id: "node-" + window.crypto.randomUUID(), skillId, input: null };
++    replaceWorkflow({ ...workflow, nodes: [...workflow.nodes, node] });
++  }
++
++  function move(index: number, offset: number) {
++    const nodes = [...workflow.nodes];
++    const [node] = nodes.splice(index, 1);
++    nodes.splice(index + offset, 0, node);
++    replaceWorkflow({ ...workflow, nodes });
++  }
++
++  function bind(nodeId: string, input: Binding | null) {
++    replaceWorkflow({ ...workflow, nodes: workflow.nodes.map((node) => node.id === nodeId ? { ...node, input } : node) });
++  }
++
++  async function registry(skill: Skill, action: Action) {
++    setBusy(skill.id);
++    setFault("");
++    setNotice("");
++    try {
++      const state = await request<Registration>("/registry/" + encodeURIComponent(skill.id), "PUT", { action });
++      setCatalog((previous) => previous && { ...previous, registrations: { ...previous.registrations, [skill.id]: state } });
++      setNotice(skill.title + " · " + actionLabels[action] + "完成");
++    } catch (error) {
++      setFault(errorText(error));
++    } finally {
++      setBusy("");
++    }
++  }
++
++  function save() {
++    setFault("");
++    try {
++      window.localStorage.setItem(savedKey, JSON.stringify(workflow));
++      setNotice("工作流已保存到当前浏览器。");
++    } catch (error) {
++      setFault(errorText(error));
++    }
++  }
++
++  function exportJson() {
++    const file = new Blob([JSON.stringify(workflow, null, 2)], { type: "application/json" });
++    const url = URL.createObjectURL(file);
++    const link = document.createElement("a");
++    link.href = url;
++    link.download = workflow.caseId + "-workflow.json";
++    link.click();
++    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
++  }
++
++  async function execute() {
++    setBusy("run");
++    setRun(null);
++    setFault("");
++    setNotice("");
++    try {
++      setRun(await request<Run>("/runs", "POST", workflow));
++    } catch (error) {
++      setFault(errorText(error));
++    } finally {
++      setBusy("");
++    }
++  }
++
++  return (
++    <main lang="zh-CN" className={styles.app}>
++      <header className={styles.bar}>
++        <div className={styles.barInner}>
++          <div className={styles.identity}><span aria-hidden="true">S</span> Skill 工作台 <small>刘添予</small></div>
++          <div className={styles.barActions}>
++            <Link href="/liutianyu-skill-lab">原题复评记录</Link>
++            <button type="button" onClick={() => void refresh()} disabled={Boolean(busy)}>刷新目录</button>
++          </div>
++        </div>
++      </header>
++      <div className={styles.shell}>
++        <section className={styles.heading} aria-labelledby="lab-title">
++          <div>
++            <h1 id="lab-title">人工编排</h1>
++            <p>选择场景，从目录装配 Skill，再按节点连接输入与产物。</p>
++          </div>
++          <span className={styles.connection} data-online={Boolean(catalog)}><i />{catalog ? "课程后端已连接" : "等待课程后端"}</span>
++        </section>
++        {fault && <p className={styles.error} role="alert">{fault}</p>}
++        {notice && <p className={styles.notice} role="status">{notice}</p>}
++        {busy === "catalog" && <p role="status" className={styles.notice}>正在读取课程目录…</p>}
++        {catalog && !catalog.datasets.length && <p className={styles.notice}>课程工作区还没有已发布的回归目录。</p>}
++        <section className={styles.scenario} aria-label="场景输入">
++          <div>
++            <label htmlFor="lab-dataset">数据集</label>
++            <select id="lab-dataset" disabled={!catalog?.datasets.length || Boolean(busy)} value={workflow.dataset}
++              onChange={(event) => changeDataset(event.target.value)}>
++              {!catalog?.datasets.length && <option value="">等待目录</option>}
++              {catalog?.datasets.map((item) => <option key={item.dataset} value={item.dataset}>{datasetLabels[item.dataset] ?? item.dataset}</option>)}
++            </select>
++          </div>
++          <div>
++            <label htmlFor="lab-case">回归场景</label>
++            <select id="lab-case" disabled={!dataset?.cases.length || Boolean(busy)} value={workflow.caseId}
++              onChange={(event) => replaceWorkflow({ ...workflow, caseId: event.target.value })}>
++              {!dataset?.cases.length && <option value="">等待场景</option>}
++              {dataset?.cases.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}
++            </select>
++          </div>
++          {fixture && <div className={styles.expected}><span>预期产物</span><code>{fixture.expectedOutput}</code></div>}
++        </section>
++        <div className={styles.grid}>
++          <section className={styles.panel} aria-labelledby="skill-list">
++            <header className={styles.panelHead}><h2 id="skill-list">Skill 目录</h2><span>{visibleSkills.length} 项</span></header>
++            <div className={styles.catalog}>
++              {visibleSkills.map((skill) => {
++                const state = catalog?.registrations[skill.id];
++                const actions: Action[] = state?.loaded ? ["reload", "revoke"] : state?.generation ? ["reload"] : ["register"];
++                return <article className={styles.skill} key={skill.id}>
++                  <div className={styles.skillHead}><h3>{skill.title}</h3>
++                    <span className={styles.pill} data-loaded={Boolean(state?.loaded)}>
++                      {state?.loaded ? "已装配" : state?.generation ? "已撤销" : "未装配"}
++                    </span>
++                  </div>
++                  <p>{skill.description}</p>
++                  <div className={styles.ports}><code>{skill.inputType === "*" ? "任意产物目录" : skill.inputType}</code>
++                    <span aria-hidden="true">→</span>
++                    <code>{skill.outputType === "$input" ? "沿用输入类型" : skill.outputType}</code></div>
++                  <details className={styles.metadata}>
++                    <summary>来源与注册信息</summary>
++                    <dl><dt>来源</dt><dd>{skill.source ?? "课程目录"}</dd>
++                    {skill.skillFile && <><dt>说明文件</dt><dd><code>{skill.skillFile}</code></dd></>}
++                    <dt>Flow ID</dt><dd><code>{state?.flowId}</code></dd>
++                    <dt>装配版本</dt><dd>{state?.generation ?? 0}</dd></dl>
++                  </details>
++                  <div className={styles.skillButtons}>
++                    {actions.map((action) => <button key={action} type="button" disabled={Boolean(busy)}
++                      onClick={() => void registry(skill, action)}>{actionLabels[action]}</button>)}
++                    <button type="button" className={styles.add} onClick={() => add(skill.id)}
++                      disabled={!fixture || Boolean(busy) || workflow.nodes.length >= 10}>＋ 添加</button>
++                  </div>
++                </article>;
++              })}
++            </div>
++          </section>
++          <section className={styles.panel} aria-labelledby="workflow-nodes">
++            <header className={styles.panelHead}><h2 id="workflow-nodes">工作流</h2><span>{workflow.nodes.length} 个节点</span></header>
++            <div className={styles.editor}>
++              {fixture && <div className={styles.source}>
++                <span className={styles.portMark} aria-hidden="true">↳</span>
++                <div><strong>场景输入</strong><code>{fixture.id}</code></div>
++                <code>{inputSkill?.inputType}</code>
++              </div>}
++              {!workflow.nodes.length && <p className={styles.empty}>从 Skill 目录添加节点，再选择每个节点的输入来源。</p>}
++              {nodeViews.length > 0 && <ol className={styles.nodes}>
++                {nodeViews.map(({ node, skill, available, binding, output }, index) =>
++                  <li key={node.id} className={styles.node}>
++                    <div className={styles.nodeHead}>
++                      <div><small>{String(index + 1).padStart(2, "0")}</small><strong>{skill?.title ?? node.skillId}</strong></div>
++                      <div className={styles.nodeButtons}>
++                        <button type="button" aria-label={"上移 " + (skill?.title ?? node.skillId)} disabled={index === 0 || Boolean(busy)}
++                          onClick={() => move(index, -1)}>↑</button>
++                        <button type="button" aria-label={"下移 " + (skill?.title ?? node.skillId)} disabled={index === nodeViews.length - 1 || Boolean(busy)}
++                          onClick={() => move(index, 1)}>↓</button>
++                        <button type="button" aria-label={"移除 " + (skill?.title ?? node.skillId)} disabled={Boolean(busy)}
++                          onClick={() => replaceWorkflow({ ...workflow, nodes: workflow.nodes.filter((item) => item.id !== node.id) })}>移除</button>
++                      </div>
++                    </div>
++                    <div className={styles.binding}>
++                      <label htmlFor={node.id}>输入绑定</label>
++                      <select id={node.id} value={binding?.key ?? ""} disabled={Boolean(busy)}
++                        onChange={(event) => bind(node.id, available.find((port) => port.key === event.target.value)?.binding ?? null)}>
++                        <option value="">{available.length ? "选择兼容的上游端口" : "当前顺序无兼容端口"}</option>
++                        {available.map((port) => <option key={port.key} value={port.key}>{port.label} / {port.type}</option>)}
++                      </select>
++                      {node.input && !binding && <small className={styles.invalid}>原绑定不可用，请重新连接。</small>}
++                      <span className={styles.output}>输出 <code>artifact</code> · {output ?? "待定"}</span>
++                    </div>
++                  </li>)}
++              </ol>}
++            </div>
++            <div className={styles.toolbar}>
++              <div>
++                <button type="button" onClick={save} disabled={!fixture || Boolean(busy)}>保存到浏览器</button>
++                <button type="button" onClick={exportJson} disabled={!fixture || Boolean(busy)}>导出 JSON</button>
++              </div>
++              <button type="button" className={styles.primary} onClick={() => void execute()} disabled={!ready || Boolean(busy)}>
++                {busy === "run" ? "正在执行…" : "运行工作流"}
++              </button>
++            </div>
++            {workflow.nodes.length > 0 && !ready && <p className={styles.hint}>装配所有节点使用的 Skill，并连接每个输入端口后即可运行。</p>}
++          </section>
++        </div>
++        {run && <section className={styles.panel} aria-labelledby="run-results">
++          <header className={styles.panelHead}><h2 id="run-results">运行结果</h2>
++            <span className={styles.pill} data-loaded={run.status === "passed"}>{run.status === "passed" ? "执行完成" : "执行中止"}</span>
++          </header>
++          <div className={styles.results}>
++            <p className={styles.resultLocation}><span>记录目录</span> <code>{run.directory}/run.json</code></p>
++            {run.nodes.map((node) => <details className={styles.trace} key={node.id} open>
++              <summary><strong>{catalog?.skills.find((skill) => skill.id === node.skillId)?.title ?? node.skillId}</strong>
++                <span>{node.status === "passed" ? "完成" : "失败"} · {node.elapsedMs} ms · {node.artifacts.length} 个文件</span></summary>
++              <dl><dt>读取目录</dt><dd><code>{node.inputDirectory}</code></dd>
++                {node.outputDirectory && <><dt>输出目录</dt><dd><code>{node.outputDirectory}</code></dd></>}
++                                <dt>端口类型</dt><dd><code>{node.outputType}</code></dd>
++                {node.flowId && <><dt>rsi-flow</dt><dd><code>{node.flowId}</code> · 装配版本 {node.generation}</dd></>}</dl>
++              {node.error && <pre className={styles.error}>{node.error}</pre>}
++              {node.artifacts.length > 0 && <div className={styles.files}><table><thead><tr><th>相对路径</th><th>字节</th><th>SHA-256</th></tr></thead>
++                <tbody>{node.artifacts.map((item) => <tr key={item.path}><td><code>{item.path}</code></td>
++                  <td>{item.bytes.toLocaleString()}</td><td><code>{item.sha256}</code></td></tr>)}</tbody></table></div>}
++            </details>)}
++          </div>
++        </section>}
++      </div>
++    </main>
++  );
++}

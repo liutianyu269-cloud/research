@@ -1,0 +1,107 @@
+{
+  "id": "92863e56-8a7c-49d2-98ea-9b2394287170",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/92863e56-8a7c-49d2-98ea-9b2394287170",
+  "workflow": {
+    "dataset": "skillgenbench",
+    "caseId": "NeuroKit_gtb03",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "identify-signal",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "neurokit-signals",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-signal-csv",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-signal",
+      "status": "passed",
+      "elapsedMs": 273,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/identify-signal",
+      "generation": 1,
+      "inputDirectory": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-1/trials/NeuroKit_gtb03__with-skill__001/task/skillgenbench-neurokit_gtb03/context/input",
+      "outputType": "采样信号 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/92863e56-8a7c-49d2-98ea-9b2394287170/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 116,
+          "sha256": "a638310ae5bf3f8e04a879a309eb0a89a0df2cc64b996a0d73b1d5159a2bee28"
+        },
+        {
+          "path": "NeuroKit_gtb03_input.csv",
+          "bytes": 538006,
+          "sha256": "1e7b5e39d4eeb758fe956ca50386613da55d0117e48228cfa2158baf094c2b1e"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "neurokit-signals",
+      "status": "passed",
+      "elapsedMs": 2330,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/neurokit-signals",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/92863e56-8a7c-49d2-98ea-9b2394287170/node-inspect/output",
+      "outputType": "CSV 指标表",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/92863e56-8a7c-49d2-98ea-9b2394287170/node-process/output",
+      "artifacts": [
+        {
+          "path": "eog_metrics.csv",
+          "bytes": 213,
+          "sha256": "86b360ef2669432055c5db3e4ff65aa9a8faaa5c5399a73ea5a1beae6b6df560"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-signal-csv",
+      "status": "passed",
+      "elapsedMs": 229,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-signal-csv",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/92863e56-8a7c-49d2-98ea-9b2394287170/node-process/output",
+      "outputType": "CSV 指标表",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/92863e56-8a7c-49d2-98ea-9b2394287170/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 29,
+          "sha256": "d2b83850033d36fcf8014eb17621fca11cf8efd1e158add1ba95058373aca6ff"
+        },
+        {
+          "path": "eog_metrics.csv",
+          "bytes": 213,
+          "sha256": "86b360ef2669432055c5db3e4ff65aa9a8faaa5c5399a73ea5a1beae6b6df560"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

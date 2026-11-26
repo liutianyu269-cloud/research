@@ -1,0 +1,70 @@
+{
+  "caseId": "NeuroKit_01",
+  "expectedOutput": "eda_events.csv",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "NeuroKit_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-neurokit-01",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-neurokit-scr-events",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-neurokit-01",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 6
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 5
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "b1989f22-4950-4562-879a-3574c7e76d8f",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "NeuroKit_inout_01.csv": "ea437fc3f11901a6bf0c196c411e44acff1b8539314689ccdae14fff3e89b0a9"
+    },
+    "artifactSha256": "56e362e7f15f2798723bbfec259a6c389554c4ee3a926f23569eafa88d0d7a3a",
+    "graderSha256": "90028977ec571b85956a86f3fbddc756eda19bbd5680f7e35b04901e2271fbed"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "dataset": "gittaskbench",
+  "caseId": "PDFPlumber_02",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-pdfplumber-02",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "gtb-pdfplumber-tables",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-pdfplumber-02",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

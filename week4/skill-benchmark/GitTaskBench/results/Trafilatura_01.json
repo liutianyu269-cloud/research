@@ -1,0 +1,71 @@
+{
+  "caseId": "Trafilatura_01",
+  "expectedOutput": "article.txt",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Trafilatura_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-trafilatura-01",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-web-article",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-trafilatura-01",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": null,
+        "status": "request_limit",
+        "apiRequests": 6
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "789862a9-faf3-40c4-a6e5-fc3ef94cb908",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "Trafilatura_01_input.txt": "1ad91a7a2fa58168cebdfac5e3ce2451ff07c83f6dd993d73e0f668b1873c9b8",
+      "article.html": "9e39c6b3bc89cb0fc03c7b2f5be14e08b422fd39425ddcd97cd5b433c268013e"
+    },
+    "artifactSha256": "acbd759ec7c7ddbe81d8b31cc8fe170607c929ea502aa227a9ca2d4478985291",
+    "graderSha256": "d54c57e1977257cec1aa4058fa98def83df54177f022de16185f6f0e676f758b"
+  }
+}

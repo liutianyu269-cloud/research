@@ -1,0 +1,32 @@
+{
+  "dataset": "skillgenbench",
+  "caseId": "PyPDF2_gtb03",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "parse-pdf",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "pdf-inspect",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-metadata-json",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

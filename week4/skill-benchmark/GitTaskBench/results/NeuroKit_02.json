@@ -1,0 +1,73 @@
+{
+  "caseId": "NeuroKit_02",
+  "expectedOutput": "ecg_peaks.csv",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "NeuroKit_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "identify-signal",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-neurokit-signals",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-signal-csv",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": null,
+        "status": "request_limit",
+        "apiRequests": 6,
+        "finishReason": "error"
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4,
+        "finishReason": "finished"
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4,
+        "finishReason": "finished"
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "03044153-0c72-468e-933a-96ecfa1f9ac0",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "NeuroKit_02_input_01.csv": "b8033623792b31d52744542f79cd10eadb1de4de0231482e87dcb26b605a2b6b"
+    },
+    "artifactSha256": "451563defa8fd0790fb64861e45ce57e0d670e9382c9b2afc1bb39654ffde59f",
+    "graderSha256": "506c6fb0992029c2ed4405367d209ee5d7ad783451d927600ec2a172b1438000"
+  }
+}

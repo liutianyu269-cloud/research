@@ -1,0 +1,93 @@
+{
+  "caseId": "PyPDF2_02",
+  "expectedOutput": "pages",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PyPDF2_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdf-pages",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "pypdf-page-operations",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pypdf2-02",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 6,
+        "finishReason": "finished"
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3,
+        "finishReason": "finished"
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3,
+        "finishReason": "finished"
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "0c26b4d8-ae95-490c-bcb8-7802564b450d",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "PyPDF2_02_input.pdf": "738c3bd4d56f3ffa5b88861c8c7b6b5c87ceee292fb9e6e8fa729c5f10288667"
+    },
+    "artifactSha256": {
+      "page_1.pdf": "bcb54682c0ae2f2c438137a2f455e0fd87dce3042a7abfd46f57b242a4a27b0a",
+      "page_10.pdf": "ace688bda99fab10bce8076d2889dee22c67c1161c88869291e5b6a1aa9c0ba8",
+      "page_11.pdf": "f81d7f30870202d8ec17baa40265f786fca55af3934d2c6b7ab2ee78cec99d33",
+      "page_12.pdf": "b15c6ec1cef9d1b130778dee6ea0c3526927845c16bd070d554924d249ae97aa",
+      "page_13.pdf": "534e9e5b6e3f14a2c5fac928066653655c112ca79484e10f64c340ac236d2cc8",
+      "page_14.pdf": "c82551e0d4bd7001a482c9f820c183d0ad7f2c73a09fd47ba05d2bb7ed717a81",
+      "page_15.pdf": "9de6d3ff841974e5360aa03fe21df0feec432bf3fab3a549649d7d056843c4bd",
+      "page_16.pdf": "9965594228e3b59d538ceb87e9f9921a1fd031f319f210672177cb4e3ba16c8c",
+      "page_17.pdf": "7f8e564338f3df07fc2a630a9eac88e1de1e5226813004b97cd790a2cc9bb39b",
+      "page_18.pdf": "054002d2e65ae5dcdf2d4db143f7188695a629ef4c094a9073295328bd6f7396",
+      "page_19.pdf": "b19f2c8d2113a03d3944922b28b789f345ae469566a48306ef327b8af478632a",
+      "page_2.pdf": "e8c1a47c77f52f68d48ff13e6195d0584e280b0ebb0610d8c5d76422c2da5303",
+      "page_3.pdf": "da95d118abd460b5957331551669486a63e99ef5be28c9d9b733a730c4d45e3d",
+      "page_4.pdf": "07ff4d6d18a4f7bafbfd9f5f8533b39149f86d5a8f97df5fb045adb97c8be91f",
+      "page_5.pdf": "ba662b8dcbaae318c5a230b0cd0514b378c3e7d84a5f6aba377d6f92f301b351",
+      "page_6.pdf": "dddd858780696b28296b32cb324964861cda0c0067cf259b4e79c8c0b59b718e",
+      "page_7.pdf": "5cab8312374714df6b9269f08804f49fbce6657af18bff7b1e1733e10c6eac8d",
+      "page_8.pdf": "ede4f9cd6cb95fdddc967f747d89b57359e93d52063b93e6d35bfd159534d353",
+      "page_9.pdf": "bcf418deb8e1f039f28802f446b436f0972e7b97ba2f713306553fb08a48ecf9"
+    },
+    "graderSha256": "b8bfb67aeb272538a9e1a6234baf3fb1edb9b5ee88e16e4fd5118495c7ea4785"
+  }
+}

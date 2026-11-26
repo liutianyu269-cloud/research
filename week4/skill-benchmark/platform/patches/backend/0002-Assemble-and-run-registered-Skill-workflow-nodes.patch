@@ -1,0 +1,869 @@
+From 4118d67841a87d8674bcdec9d49d9e5fef4c2144 Mon Sep 17 00:00:00 2001
+From: Codex <codex@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 09:48:54 +0800
+Subject: [PATCH 2/2] Assemble and run registered Skill workflow nodes
+
+---
+ .../skilllab/liutianyu/SkillLabStarter.java   |   5 +-
+ .../skilllab/liutianyu/SkillLabV2Catalog.java | 155 ++++++++++
+ .../liutianyu/SkillLabV2Controller.java       | 289 ++++++++++++++++++
+ .../skilllab/liutianyu/SkillLabV2Engine.java  | 160 ++++++++++
+ .../skilllab/liutianyu/SkillLabV2Runner.java  | 205 +++++++++++++
+ 5 files changed, 812 insertions(+), 2 deletions(-)
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Catalog.java
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java
+ create mode 100644 core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Runner.java
+
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java
+index c72af7d..ae49d97 100644
+--- a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabStarter.java
+@@ -17,10 +17,11 @@ import org.springframework.context.annotation.Import;
+ })
+ @EnableDiscoveryClient
+ @FlowScan(flowPackages = "com.horsecoder.skilllab.liutianyu")
+-@Import({FlowEngineService.class, SkillLabController.class, SkillLabFlow.class})
++@Import({FlowEngineService.class, SkillLabController.class, SkillLabFlow.class,
++    SkillLabV2Catalog.class, SkillLabV2Controller.class, SkillLabV2Engine.class, SkillLabV2Runner.class})
+ public class SkillLabStarter {
+     public static void main(String[] args) {
+         System.setProperty("spring.config.name", "liutianyu-skill-lab");
+         SpringApplication.run(SkillLabStarter.class, args);
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Catalog.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Catalog.java
+new file mode 100644
+index 0000000..7fbf04a
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Catalog.java
+@@ -0,0 +1,155 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Map;
++import org.springframework.beans.factory.annotation.Value;
++
++public class SkillLabV2Catalog {
++    static final String VERIFY = "verify-expected-artifact";
++    static final String MANIFEST = "write-artifact-manifest";
++    static final String ANY_ARTIFACT = "*";
++    static final String SAME_AS_INPUT = "$input";
++    private static final List<String> DATASETS = Arrays.asList("skillgenbench", "gittaskbench");
++    private final String workspace;
++    private final ObjectMapper json;
++
++    public SkillLabV2Catalog(@Value("${liutianyu.v2.workspace:}") String workspace, ObjectMapper json) {
++        this.workspace = workspace;
++        this.json = json;
++    }
++
++    Path root() throws IOException {
++        if (workspace.isEmpty()) {
++            throw new IOException("请通过 LIUTIANYU_V2_WORKSPACE 设置 v2 课程工作区");
++        }
++        return Paths.get(workspace).toRealPath();
++    }
++
++    Snapshot read() throws IOException {
++        Path root = root();
++        Snapshot catalog = new Snapshot();
++        for (String datasetName : DATASETS) {
++            Path relative = Paths.get("work", "skill-lab-v2", datasetName, "catalog.json");
++            if (!Files.isRegularFile(root.resolve(relative))) {
++                continue;
++            }
++            Dataset dataset = json.readValue(inside(root, relative.toString()).toFile(), Dataset.class);
++            if (!datasetName.equalsIgnoreCase(dataset.dataset) || dataset.skills == null || dataset.cases == null) {
++                throw new IOException("无效的课程目录 " + datasetName);
++            }
++            Map<String, Skill> datasetSkills = new LinkedHashMap<>();
++            for (Skill skill : dataset.skills) {
++                if (skill == null || !isId(skill.id) || isBlank(skill.title) || isBlank(skill.inputType)
++                        || isBlank(skill.outputType) || skill.inputType.equals(ANY_ARTIFACT)
++                        || skill.outputType.equals(SAME_AS_INPUT) || isBlank(skill.script) || isBlank(skill.skillFile)
++                        || catalog.skills.putIfAbsent(skill.id, skill) != null) {
++                    throw new IOException("无效或重复的 Skill 记录 " + datasetName);
++                }
++                relativePath(skill.script);
++                relativePath(skill.skillFile);
++                datasetSkills.put(skill.id, skill);
++            }
++            Map<String, Fixture> fixtures = new LinkedHashMap<>();
++            for (Fixture fixture : dataset.cases) {
++                if (fixture == null || !isId(fixture.id) || isBlank(fixture.title)
++                        || !datasetSkills.containsKey(fixture.skillId) || isBlank(fixture.skillArgument)
++                        || fixtures.putIfAbsent(fixture.id, fixture) != null) {
++                    throw new IOException("无效或重复的回归场景 " + datasetName);
++                }
++                relativePath(fixture.inputRoot);
++                relativePath(fixture.expectedOutput);
++            }
++            dataset.dataset = datasetName;
++            catalog.datasets.add(dataset);
++        }
++        addInternal(catalog, VERIFY, "检查预期产物", "检查本场景要求的路径并继续传递产物目录。", SAME_AS_INPUT);
++        addInternal(catalog, MANIFEST, "生成产物清单", "读取上游产物并记录文件相对路径、大小与 SHA-256。", "artifact-manifest/json");
++        return catalog;
++    }
++
++    private void addInternal(Snapshot catalog, String id, String title, String description, String outputType)
++            throws IOException {
++        Skill skill = new Skill();
++        skill.id = id;
++        skill.title = title;
++        skill.description = description;
++        skill.source = "课程平台内置工具";
++        skill.inputType = ANY_ARTIFACT;
++        skill.outputType = outputType;
++        if (catalog.skills.putIfAbsent(id, skill) != null) {
++            throw new IOException("目录与平台内置 Skill 的 ID 冲突 " + id);
++        }
++    }
++
++    static boolean isId(String value) {
++        return value != null && value.matches("[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}");
++    }
++
++    private static boolean isBlank(String value) {
++        return value == null || value.trim().isEmpty();
++    }
++
++    static Path relativePath(String value) {
++        if (isBlank(value)) {
++            throw new IllegalArgumentException("目录记录缺少路径");
++        }
++        Path path = Paths.get(value);
++        if (path.isAbsolute() || path.getRoot() != null || path.normalize().startsWith("..")
++                || path.normalize().toString().isEmpty()) {
++            throw new IllegalArgumentException("目录记录包含无效的相对路径");
++        }
++        return path.normalize();
++    }
++
++    static Path inside(Path root, String relative) throws IOException {
++        Path path = root.resolve(relativePath(relative)).toRealPath();
++        if (!path.startsWith(root)) {
++            throw new IllegalArgumentException("目录指向课程工作区之外");
++        }
++        return path;
++    }
++
++    public static class Snapshot {
++        public final List<Dataset> datasets = new ArrayList<>();
++        public final Map<String, Skill> skills = new LinkedHashMap<>();
++    }
++
++    @JsonIgnoreProperties(ignoreUnknown = true)
++    public static class Dataset {
++        public String dataset;
++        public List<Fixture> cases;
++        public List<Skill> skills;
++    }
++
++    @JsonIgnoreProperties(ignoreUnknown = true)
++    public static class Fixture {
++        public String id;
++        public String title;
++        public String inputRoot;
++        public String expectedOutput;
++        public String skillId;
++        public String skillArgument;
++        public String outputType;
++    }
++
++    @JsonIgnoreProperties(ignoreUnknown = true)
++    public static class Skill {
++        public String id;
++        public String title;
++        public String description;
++        public String source;
++        public String script;
++        public String skillFile;
++        public String inputType;
++        public String outputType;
++    }
++}
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java
+new file mode 100644
+index 0000000..6b8f03b
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Controller.java
+@@ -0,0 +1,289 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.fasterxml.jackson.databind.node.ObjectNode;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Dataset;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Fixture;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Skill;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Catalog.Snapshot;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Runner.Invocation;
++import com.horsecoder.skilllab.liutianyu.SkillLabV2Runner.Result;
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.http.converter.HttpMessageNotReadableException;
++import org.springframework.web.bind.annotation.CrossOrigin;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.PathVariable;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.PutMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++@RestController
++@RequestMapping("/api/skill-lab/v2")
++@CrossOrigin(origins = {"http://127.0.0.1:3105", "http://localhost:3105", "http://127.0.0.1:3106", "http://localhost:3106"})
++public class SkillLabV2Controller {
++    private static final Logger log = LoggerFactory.getLogger(SkillLabV2Controller.class);
++    private static final int MAX_NODES = 10;
++    private final SkillLabV2Catalog catalog;
++    private final SkillLabV2Engine engine;
++    private final ObjectMapper json;
++
++    public SkillLabV2Controller(SkillLabV2Catalog catalog, SkillLabV2Engine engine, ObjectMapper json) {
++        this.catalog = catalog;
++        this.engine = engine;
++        this.json = json;
++    }
++
++    @GetMapping("/catalog")
++    public Map<String, Object> list() throws IOException {
++        Snapshot snapshot = catalog.read();
++        Map<String, Object> response = new LinkedHashMap<>();
++        response.put("datasets", snapshot.datasets);
++        response.put("skills", snapshot.skills.values());
++        response.put("registrations", engine.registrations(snapshot.skills.keySet()));
++        return response;
++    }
++
++    @PutMapping("/registry/{id}")
++    public SkillLabV2Engine.Registration change(@PathVariable String id, @RequestBody RegistryAction body)
++            throws Exception {
++        Skill skill = catalog.read().skills.get(id);
++        if (skill == null || body == null || !("register".equals(body.action) || "reload".equals(body.action)
++                || "revoke".equals(body.action))) {
++            throw new IllegalArgumentException("未知 Skill 或注册操作");
++        }
++        if (!"revoke".equals(body.action) && skill.script != null) {
++            requireFile(catalog.root(), skill.script);
++            requireFile(catalog.root(), skill.skillFile);
++        }
++        return engine.change(id, !"revoke".equals(body.action));
++    }
++
++    @PostMapping("/runs")
++    public Run run(@RequestBody Workflow workflow) throws IOException {
++        Snapshot snapshot = catalog.read();
++        Fixture fixture = fixture(snapshot, workflow);
++        Map<String, String> outputTypes = validate(workflow, snapshot, fixture);
++        Path root = catalog.root();
++        Path fixtures = SkillLabV2Catalog.inside(root, fixture.inputRoot);
++        if (!Files.isDirectory(fixtures)) {
++            throw new IllegalArgumentException("场景输入应为目录");
++        }
++        Path runs = root.resolve("work/skill-lab-v2/platform/runs");
++        Files.createDirectories(runs);
++        if (!runs.toRealPath().startsWith(root)) {
++            throw new IOException("运行目录位于课程工作区之外");
++        }
++
++        Run run = new Run();
++        run.id = UUID.randomUUID().toString();
++        run.workflow = workflow;
++        run.status = "passed";
++        Path runFolder = Files.createDirectory(runs.resolve(run.id));
++        run.directory = displayPath(root, runFolder);
++        Map<String, Path> completed = new LinkedHashMap<>();
++        for (Node node : workflow.nodes) {
++            Skill skill = snapshot.skills.get(node.skillId);
++            Path step = Files.createDirectory(runFolder.resolve(node.id));
++            Path source = "case".equals(node.input.from) ? fixtures : completed.get(node.input.nodeId);
++            Invocation invocation = new Invocation();
++            invocation.skillId = skill.id;
++            invocation.argument = fixture.skillArgument;
++            invocation.expected = fixture.expectedOutput;
++            invocation.input = source.toString();
++            invocation.output = step.resolve("output").toString();
++
++            NodeResult trace = new NodeResult();
++            trace.id = node.id;
++            trace.skillId = skill.id;
++            trace.outputType = outputTypes.get(node.id);
++            trace.inputDirectory = displayPath(root, source);
++            long started = System.nanoTime();
++            try {
++                if (skill.script != null) {
++                    invocation.script = requireFile(root, skill.script).toString();
++                }
++                Result result = engine.execute(skill.id, invocation);
++                trace.flowId = result.flowId;
++                trace.generation = result.generation;
++                if (result.error != null) {
++                    trace.error = result.error;
++                } else {
++                    Path produced = Paths.get(result.directory);
++                    completed.put(node.id, produced);
++                    trace.outputDirectory = displayPath(root, produced);
++                    trace.artifacts = result.artifacts;
++                }
++            } catch (Exception error) {
++                log.warn("Skill node {} failed", node.id, error);
++                trace.error = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
++            }
++            trace.elapsedMs = (System.nanoTime() - started) / 1_000_000;
++            trace.status = trace.error == null ? "passed" : "failed";
++            run.nodes.add(trace);
++            if (trace.error != null) {
++                run.status = "failed";
++                break;
++            }
++        }
++        json.writerWithDefaultPrettyPrinter().writeValue(runFolder.resolve("run.json").toFile(), run);
++        return run;
++    }
++
++    private Fixture fixture(Snapshot snapshot, Workflow workflow) {
++        if (workflow != null && workflow.dataset != null && workflow.caseId != null) {
++            for (Dataset dataset : snapshot.datasets) {
++                if (dataset.dataset.equals(workflow.dataset)) {
++                    for (Fixture fixture : dataset.cases) {
++                        if (fixture.id.equals(workflow.caseId)) {
++                            return fixture;
++                        }
++                    }
++                }
++            }
++        }
++        throw new IllegalArgumentException("未知数据集或回归场景");
++    }
++
++    private Map<String, String> validate(Workflow workflow, Snapshot snapshot, Fixture fixture) {
++        String fixtureType = snapshot.skills.get(fixture.skillId).inputType;
++        if (workflow.nodes == null || workflow.nodes.isEmpty() || workflow.nodes.size() > MAX_NODES) {
++            throw new IllegalArgumentException("工作流必须包含 1–" + MAX_NODES + " 个节点");
++        }
++        Map<String, SkillLabV2Engine.Registration> states = engine.registrations(snapshot.skills.keySet());
++        Map<String, String> outputs = new LinkedHashMap<>();
++        for (Node node : workflow.nodes) {
++            if (node == null || node.id == null || !node.id.matches("node-[a-zA-Z0-9_-]{1,100}")
++                    || outputs.containsKey(node.id) || node.input == null) {
++                throw new IllegalArgumentException("节点缺少有效的唯一 ID 或输入端口");
++            }
++            Skill skill = snapshot.skills.get(node.skillId);
++            if (skill == null) {
++                throw new IllegalArgumentException("节点引用未知 Skill " + node.id);
++            }
++            if (!states.get(skill.id).loaded) {
++                throw new IllegalStateException("请先在课程后端装配 Skill " + skill.id);
++            }
++            Input input = node.input;
++            String sourceType;
++            if ("case".equals(input.from) && "fixtures".equals(input.port) && input.nodeId == null) {
++                sourceType = fixtureType;
++            } else if ("node".equals(input.from) && "artifact".equals(input.port) && outputs.containsKey(input.nodeId)) {
++                sourceType = outputs.get(input.nodeId);
++            } else {
++                throw new IllegalArgumentException("节点 " + node.id + " 必须连接场景或前置节点的有效输出端口");
++            }
++            boolean connected = skill.inputType.equals(sourceType) || (SkillLabV2Catalog.ANY_ARTIFACT.equals(
++                skill.inputType) && "node".equals(input.from));
++            if (!connected) {
++                throw new IllegalArgumentException("节点 " + node.id + " 的输入类型 " + skill.inputType
++                    + " 与绑定端口 " + sourceType + " 不兼容");
++            }
++            String outputType = fixture.skillId.equals(skill.id) && fixture.outputType != null && !fixture.outputType.isEmpty()
++                ? fixture.outputType : skill.outputType;
++            outputs.put(node.id, SkillLabV2Catalog.SAME_AS_INPUT.equals(outputType) ? sourceType : outputType);
++        }
++        return outputs;
++    }
++
++    private Path requireFile(Path root, String relative) throws IOException {
++        Path file = SkillLabV2Catalog.inside(root, relative);
++        if (!Files.isRegularFile(file)) {
++            throw new IllegalArgumentException("Skill 目录声明的文件不存在 " + relative);
++        }
++        return file;
++    }
++
++    private String displayPath(Path root, Path item) {
++        return root.relativize(item).toString().replace('\\', '/');
++    }
++
++    @ExceptionHandler(HttpMessageNotReadableException.class)
++    ResponseEntity<ObjectNode> malformed(HttpMessageNotReadableException error) {
++        return problem(HttpStatus.BAD_REQUEST, "请求须使用有效的 JSON 和端口结构");
++    }
++
++    @ExceptionHandler(IllegalArgumentException.class)
++    ResponseEntity<ObjectNode> badRequest(IllegalArgumentException error) {
++        return problem(HttpStatus.BAD_REQUEST, error.getMessage());
++    }
++
++    @ExceptionHandler(IllegalStateException.class)
++    ResponseEntity<ObjectNode> conflict(IllegalStateException error) {
++        return problem(HttpStatus.CONFLICT, error.getMessage());
++    }
++
++    @ExceptionHandler(IOException.class)
++    ResponseEntity<ObjectNode> directoryError(IOException error) {
++        return problem(HttpStatus.SERVICE_UNAVAILABLE, error.getMessage());
++    }
++
++    @ExceptionHandler(Exception.class)
++    ResponseEntity<ObjectNode> serviceError(Exception error) {
++        log.error("Skill Lab v2 request failed", error);
++        return problem(HttpStatus.INTERNAL_SERVER_ERROR, "课程后端未能完成请求");
++    }
++
++    private ResponseEntity<ObjectNode> problem(HttpStatus status, String message) {
++        return ResponseEntity.status(status).body(json.createObjectNode().put("error", message));
++    }
++
++    public static class RegistryAction {
++        public String action;
++    }
++
++    public static class Workflow {
++        public String dataset;
++        public String caseId;
++        public List<Node> nodes;
++    }
++
++    public static class Node {
++        public String id;
++        public String skillId;
++        public Input input;
++    }
++
++    public static class Input {
++        public String from;
++        public String nodeId;
++        public String port;
++    }
++
++    public static class Run {
++        public String id;
++        public String status;
++        public String directory;
++        public Workflow workflow;
++        public final List<NodeResult> nodes = new ArrayList<>();
++    }
++
++    public static class NodeResult {
++        public String id;
++        public String skillId;
++        public String status;
++        public long elapsedMs;
++        public String flowId;
++        public int generation;
++        public String inputDirectory;
++        public String outputType;
++        public String outputDirectory;
++        public List<SkillLabV2Runner.Artifact> artifacts = Collections.emptyList();
++        public String error;
++    }
++}
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java
+new file mode 100644
+index 0000000..dacae79
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Engine.java
+@@ -0,0 +1,160 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import cc.eamon.open.flow.config.flow.FlowConfig;
++import cc.eamon.open.flow.config.flow.FlowNodeConfig;
++import cc.eamon.open.flow.config.flow.FlowRouteConfig;
++import cc.eamon.open.flow.config.flow.node.FlowParamConfig;
++import cc.eamon.open.flow.config.flow.node.FlowResultConfig;
++import cc.eamon.open.flow.core.FlowEngine;
++import cc.eamon.open.flow.core.context.FlowContextHolder;
++import cc.eamon.open.flow.core.context.Initializer;
++import cc.eamon.open.flow.core.context.InitializerEnums;
++import cc.eamon.open.flow.core.stereotype.Flow;
++import cc.eamon.open.flow.core.stereotype.execute.holder.FlowHolder;
++import cc.eamon.open.flow.core.stereotype.support.route.ExecutorHolder;
++import cc.eamon.open.flow.remote.FlowRequest;
++import cc.eamon.open.flow.spring.FlowComponent;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.horsecoder.common.whuTalent.core.flow.FlowEngineService;
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.LinkedHashMap;
++import java.util.Map;
++import java.util.UUID;
++
++@FlowComponent
++public class SkillLabV2Engine {
++    private static final String DISPATCH = "LIUTIANYU_V2_DISPATCH";
++    private static final String DISABLED = "LIUTIANYU_V2_DISABLED";
++    private final Map<String, Integer> generations = new LinkedHashMap<>();
++    private final String session = UUID.randomUUID().toString();
++    private final FlowEngineService flows;
++    private final SkillLabV2Runner runner;
++    private final ObjectMapper json;
++
++    public SkillLabV2Engine(FlowEngineService flows, SkillLabV2Runner runner, ObjectMapper json) {
++        this.flows = flows;
++        this.runner = runner;
++        this.json = json;
++    }
++
++    synchronized Map<String, Registration> registrations(Iterable<String> ids) {
++        Map<String, Registration> states = new LinkedHashMap<>();
++        for (String id : ids) {
++            states.put(id, registration(id));
++        }
++        return states;
++    }
++
++    synchronized Registration change(String id, boolean enabled) throws Exception {
++        // 首次使用时初始化课程应用装配的 Spring FlowComponent。
++        FlowEngine.instance().release();
++        Initializer initializer = InitializerEnums.DEFAULT.getInitializer();
++        String flowId = flowId(id);
++        FlowHolder previous = initializer.getFlowHolder(flowId);
++        FlowConfig config = configuration(flowId, enabled ? DISPATCH : DISABLED);
++        FlowHolder holder = new FlowHolder(config);
++        initializer.addExtraFlowConfig(Collections.singletonMap(flowId, config));
++        initializer.addExtraFlowHolder(Collections.singletonMap(flowId, holder));
++        if (previous != null) {
++            previous.getFlowConfig().getNodes().forEach(initializer.getFlowNodeConfigFlowConfigs()::remove);
++        }
++        generations.merge(id, 1, Integer::sum);
++        return registration(id);
++    }
++
++    // 同一注册槽执行期间保持 holder 和节点配置一致。
++    synchronized SkillLabV2Runner.Result execute(String id, SkillLabV2Runner.Invocation invocation) throws Exception {
++        Registration current = registration(id);
++        if (!current.loaded) {
++            throw new IllegalStateException("Skill 已撤销或尚未装配 " + id);
++        }
++        FlowRequest request = new FlowRequest();
++        request.setFlowId(flowId(id));
++        request.setParams(Collections.singletonMap("payload", json.writeValueAsString(invocation)));
++        try {
++            Object result = flows.runFlowByFlowId(request).get("result");
++            if (!(result instanceof String)) {
++                throw new IllegalStateException("rsi-flow 未返回节点结果");
++            }
++            SkillLabV2Runner.Result details = json.readValue((String) result, SkillLabV2Runner.Result.class);
++            details.flowId = current.flowId;
++            details.generation = current.generation;
++            return details;
++        } finally {
++            FlowContextHolder.clear();
++            ExecutorHolder.clear();
++        }
++    }
++
++    @Flow(DISPATCH)
++    public void dispatch(String payload) throws Exception {
++        SkillLabV2Runner.Invocation invocation = json.readValue(payload, SkillLabV2Runner.Invocation.class);
++        FlowEngine.instance().register("result", json.writeValueAsString(runner.execute(invocation)));
++    }
++
++    @Flow(DISABLED)
++    public void disabled(String payload) {
++        FlowEngine.instance().register("result", "{\"error\":\"Skill 已撤销\"}");
++    }
++
++    private Registration registration(String id) {
++        String flowId = flowId(id);
++        FlowHolder holder = InitializerEnums.DEFAULT.getInitializer().getFlowHolder(flowId);
++        boolean loaded = holder != null && DISPATCH.equals(holder.getFlowConfig().getNodes().get(0).getReference());
++        return new Registration(loaded, generations.getOrDefault(id, 0), flowId, session);
++    }
++
++    private static String flowId(String id) {
++        return "@com.horsecoder.skilllab.liutianyu/v2/" + id;
++    }
++
++    private FlowConfig configuration(String id, String reference) {
++        FlowParamConfig payload = new FlowParamConfig();
++        payload.setName("payload");
++        payload.setType("String");
++        payload.setNotnull(true);
++        FlowResultConfig result = new FlowResultConfig();
++        result.setName("result");
++        result.setType("String");
++        result.setNotnull(true);
++
++        FlowNodeConfig node = new FlowNodeConfig();
++        node.setId("dispatch");
++        node.setType("event");
++        node.setReference(reference);
++        node.setParams(Collections.singletonList(payload));
++        node.setResults(Collections.singletonList(result));
++
++        FlowConfig config = new FlowConfig();
++        config.setId(id);
++        config.setName(id.substring(id.lastIndexOf('/') + 1));
++        config.setType("flow");
++        config.setParams(Collections.singletonList(payload));
++        config.setResults(Collections.singletonList(result));
++        config.setNodes(Collections.singletonList(node));
++        config.setRoutes(Arrays.asList(route("start", "dispatch"), route("dispatch", "end")));
++        return config;
++    }
++
++    private FlowRouteConfig route(String from, String to) {
++        FlowRouteConfig route = new FlowRouteConfig();
++        route.setSource(from);
++        route.setTarget(to);
++        return route;
++    }
++
++    public static class Registration {
++        public final boolean loaded;
++        public final int generation;
++        public final String flowId;
++        public final String session;
++
++        Registration(boolean loaded, int generation, String flowId, String session) {
++            this.loaded = loaded;
++            this.generation = generation;
++            this.flowId = flowId;
++            this.session = session;
++        }
++    }
++}
+diff --git a/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Runner.java b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Runner.java
+new file mode 100644
+index 0000000..9485f16
+--- /dev/null
++++ b/core-starter/src/main/java/com/horsecoder/skilllab/liutianyu/SkillLabV2Runner.java
+@@ -0,0 +1,205 @@
++package com.horsecoder.skilllab.liutianyu;
++
++import com.fasterxml.jackson.databind.ObjectMapper;
++import java.io.IOException;
++import java.io.InputStream;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.LinkOption;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++import java.util.concurrent.TimeUnit;
++import java.util.stream.Collectors;
++import java.util.stream.Stream;
++import org.springframework.beans.factory.annotation.Value;
++
++public class SkillLabV2Runner {
++    private static final int MAX_ENTRIES = 4096;
++    private final ObjectMapper json;
++    private final String python;
++    private final String distro;
++
++    public SkillLabV2Runner(ObjectMapper json, @Value("${liutianyu.v2.python:}") String python,
++            @Value("${liutianyu.v2.wsl-distro:Ubuntu}") String distro) {
++        this.json = json;
++        this.python = python;
++        this.distro = distro;
++    }
++
++    Result execute(Invocation invocation) {
++        Result result = new Result();
++        try {
++            Path input = Paths.get(invocation.input);
++            Path output = Paths.get(invocation.output);
++            Path step = output.getParent();
++            if (SkillLabV2Catalog.VERIFY.equals(invocation.skillId)) {
++                Path expected = input.resolve(SkillLabV2Catalog.relativePath(invocation.expected));
++                if ((!Files.isDirectory(expected) && !Files.isRegularFile(expected))
++                        || !expected.toRealPath().startsWith(input)) {
++                    throw new IOException("缺少预期产物 " + invocation.expected);
++                }
++                if (Files.isDirectory(expected) && inventory(expected).isEmpty()) {
++                    throw new IOException("预期产物目录为空 " + invocation.expected);
++                }
++                output = input;
++            } else if (SkillLabV2Catalog.MANIFEST.equals(invocation.skillId)) {
++                Files.createDirectory(output);
++                json.writerWithDefaultPrettyPrinter().writeValue(output.resolve("manifest.json").toFile(), inventory(input));
++            } else {
++                Files.createDirectory(output);
++                Path copiedInput = Files.createDirectory(step.resolve("input"));
++                copyInput(input, copiedInput);
++                runPython(invocation, copiedInput, output, step.resolve("process.log"));
++            }
++            result.artifacts = inventory(output);
++            if (result.artifacts.isEmpty()) {
++                throw new IOException("节点未生成可传递的文件");
++            }
++            result.directory = output.toString();
++        } catch (InterruptedException error) {
++            Thread.currentThread().interrupt();
++            result.error = "Skill 进程执行被中断";
++        } catch (Exception error) {
++            result.error = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
++        }
++        return result;
++    }
++
++    private void runPython(Invocation invocation, Path input, Path output, Path log)
++            throws IOException, InterruptedException {
++        if (python.isEmpty()) {
++            throw new IOException("请通过 LIUTIANYU_V2_PYTHON 设置课程 Python 解释器");
++        }
++        boolean wsl = "\\".equals(java.io.File.separator) && python.startsWith("/");
++        Path script = Paths.get(invocation.script);
++        List<String> command = new ArrayList<>();
++        if (wsl) {
++            command.addAll(Arrays.asList("wsl.exe", "-d", distro, "--exec", "timeout", "--kill-after=5s", "110s"));
++        }
++        command.addAll(Arrays.asList(python, "-B", processPath(script, wsl), invocation.argument,
++            processPath(input, wsl), processPath(output, wsl)));
++        Process process = new ProcessBuilder(command).directory(output.getParent().toFile())
++            .redirectErrorStream(true).redirectOutput(log.toFile()).start();
++        try {
++            process.getOutputStream().close();
++            if (!process.waitFor(120, TimeUnit.SECONDS)) {
++                throw new IOException("Skill 进程执行超时");
++            }
++            if (process.exitValue() != 0) {
++                byte[] prefix = new byte[8192];
++                String details = "";
++                try (InputStream logInput = Files.newInputStream(log)) {
++                    int length = logInput.read(prefix);
++                    if (length > 0) {
++                        details = new String(prefix, 0, length, StandardCharsets.UTF_8).trim();
++                    }
++                }
++                throw new IOException("Skill 进程退出，状态 " + process.exitValue() + (details.isEmpty() ? "" : "\n" + details));
++            }
++        } finally {
++            if (process.isAlive()) {
++                process.destroyForcibly();
++            }
++        }
++    }
++
++    private String processPath(Path path, boolean wsl) {
++        String value = path.toAbsolutePath().toString();
++        if (!wsl) {
++            return value;
++        }
++        if (value.length() < 3 || value.charAt(1) != ':') {
++            throw new IllegalArgumentException("WSL 运行需要 Windows 本地盘符路径");
++        }
++        return "/mnt/" + Character.toLowerCase(value.charAt(0)) + value.substring(2).replace('\\', '/');
++    }
++
++    private void copyInput(Path source, Path destination) throws IOException {
++        for (Path entry : entries(source)) {
++            Path selected = destination.resolve(source.relativize(entry));
++            if (Files.isDirectory(entry, LinkOption.NOFOLLOW_LINKS)) {
++                Files.createDirectories(selected);
++            } else if (Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)) {
++                Files.createDirectories(selected.getParent());
++                Files.copy(entry, selected);
++            } else {
++                throw new IOException("输入目录包含链接或特殊文件 " + source.relativize(entry));
++            }
++        }
++    }
++
++    private List<Path> entries(Path directory) throws IOException {
++        if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)) {
++            throw new IOException("节点需要有效的目录输入");
++        }
++        try (Stream<Path> entries = Files.walk(directory)) {
++            List<Path> paths = entries.limit(MAX_ENTRIES + 1L).collect(Collectors.toList());
++            if (paths.size() > MAX_ENTRIES) {
++                throw new IOException("目录的文件和子目录超过 " + MAX_ENTRIES + " 项");
++            }
++            paths.sort(Path::compareTo);
++            return paths;
++        }
++    }
++
++    private List<Artifact> inventory(Path directory) throws IOException, NoSuchAlgorithmException {
++        List<Artifact> artifacts = new ArrayList<>();
++        for (Path entry : entries(directory)) {
++            if (Files.isDirectory(entry, LinkOption.NOFOLLOW_LINKS)) {
++                continue;
++            }
++            if (!Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)) {
++                throw new IOException("产物目录包含链接或特殊文件 " + directory.relativize(entry));
++            }
++            MessageDigest digest = MessageDigest.getInstance("SHA-256");
++            byte[] buffer = new byte[65536];
++            long bytes = 0;
++            try (InputStream input = Files.newInputStream(entry)) {
++                int count;
++                while ((count = input.read(buffer)) != -1) {
++                    digest.update(buffer, 0, count);
++                    bytes += count;
++                }
++            }
++            StringBuilder hex = new StringBuilder();
++            for (byte value : digest.digest()) {
++                hex.append(Character.forDigit((value >>> 4) & 15, 16));
++                hex.append(Character.forDigit(value & 15, 16));
++            }
++            Artifact artifact = new Artifact();
++            artifact.path = directory.relativize(entry).toString().replace('\\', '/');
++            artifact.bytes = bytes;
++            artifact.sha256 = hex.toString();
++            artifacts.add(artifact);
++        }
++        return artifacts;
++    }
++
++    public static class Invocation {
++        public String skillId;
++        public String script;
++        public String argument;
++        public String expected;
++        public String input;
++        public String output;
++    }
++
++    public static class Result {
++        public String directory;
++        public String flowId;
++        public int generation;
++        public String error;
++        public List<Artifact> artifacts;
++    }
++
++    public static class Artifact {
++        public String path;
++        public long bytes;
++        public String sha256;
++    }
++}

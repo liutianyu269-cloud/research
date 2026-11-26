@@ -1,0 +1,70 @@
+{
+  "caseId": "PDFPlumber_02",
+  "expectedOutput": "tables.csv",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PDFPlumber_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdfplumber-02",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-pdfplumber-tables",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pdfplumber-02",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": null,
+        "status": "request_limit",
+        "apiRequests": 6
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": null,
+        "status": "request_limit",
+        "apiRequests": 6
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "ff0686df-9e84-4aad-8e84-e0d4ca13c3a9",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "PDFPlumber_02_input.pdf": "f52f80bd057313c8abec2e854c65c4d96658e72744c836e81d3048d8a5861046"
+    },
+    "artifactSha256": "7f831ac46a357c8ad27c0ac3104ca1395eb0d40b0c2b9b11ef38732ec8a7286f",
+    "graderSha256": "b9810b529d4d5dce3abf5c1ab5628195e60221de6fe79cf23f16501ebf4edb8f"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "dataset": "skillgenbench",
+  "caseId": "Eparse_gtb01",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "parse-workbook",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "excel-eparse",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-text-report",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}

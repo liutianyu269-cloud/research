@@ -1,0 +1,107 @@
+{
+  "id": "bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b",
+  "workflow": {
+    "dataset": "skillgenbench",
+    "caseId": "ScikitImage_gen06",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "identify-mask-input",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "scikitimage-masks",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "check-png-mask",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "identify-mask-input",
+      "status": "passed",
+      "elapsedMs": 245,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/identify-mask-input",
+      "generation": 1,
+      "inputDirectory": "work/sgb-dsh-ab/runs/skillgenbench/dsh/deepseek-flash/sgb-dsh-skill-once-3/trials/ScikitImage_gen06__with-skill__001/task/skillgenbench-scikitimage_gen06/context/input",
+      "outputType": "PNG 图像",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 101,
+          "sha256": "93a67701631d221b06d495128c34a8c4ec1bf12d2351b698397be389a1e2e0e6"
+        },
+        {
+          "path": "ScikitImage_gen06_input.png",
+          "bytes": 687,
+          "sha256": "ecb3dbaa50572ab8917976d2d5b8b986fa2071ad8cdacd50ca8c1d58f84db62b"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "scikitimage-masks",
+      "status": "passed",
+      "elapsedMs": 790,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/scikitimage-masks",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b/node-inspect/output",
+      "outputType": "PNG 图像",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b/node-process/output",
+      "artifacts": [
+        {
+          "path": "mask.png",
+          "bytes": 687,
+          "sha256": "ecb3dbaa50572ab8917976d2d5b8b986fa2071ad8cdacd50ca8c1d58f84db62b"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "check-png-mask",
+      "status": "passed",
+      "elapsedMs": 401,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/check-png-mask",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b/node-process/output",
+      "outputType": "PNG 图像",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/bcc3ef07-817d-46b7-a2ec-ae911ccd3e8b/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 69,
+          "sha256": "c5b2715440e1b50b6c497e4003e163949ce860c237638e115ed14ea2e160d538"
+        },
+        {
+          "path": "mask.png",
+          "bytes": 687,
+          "sha256": "ecb3dbaa50572ab8917976d2d5b8b986fa2071ad8cdacd50ca8c1d58f84db62b"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "id": "2983c5e7-dfc5-4e6a-a36b-8dacdcac1259",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/2983c5e7-dfc5-4e6a-a36b-8dacdcac1259",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_02",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-faker-schema",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "faker-tabular-fixtures",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-faker-csv",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-faker-schema",
+      "status": "passed",
+      "elapsedMs": 203,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-faker-schema",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/Faker_02",
+      "outputType": "题目指定的行数与列映射，无文件输入",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2983c5e7-dfc5-4e6a-a36b-8dacdcac1259/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 82,
+          "sha256": "ab03b78bc1310d9e7b519f70d9382a463b714696472c73742a959c06fb28ca79"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "faker-tabular-fixtures",
+      "status": "passed",
+      "elapsedMs": 333,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/faker-tabular-fixtures",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/2983c5e7-dfc5-4e6a-a36b-8dacdcac1259/node-inspect/output",
+      "outputType": "UTF-8 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2983c5e7-dfc5-4e6a-a36b-8dacdcac1259/node-process/output",
+      "artifacts": [
+        {
+          "path": "companies.csv",
+          "bytes": 449,
+          "sha256": "20229b98f43625741b070fb04d91e0ff9cd4735b1df6d7b5cf2f9733ce6988cd"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-faker-csv",
+      "status": "passed",
+      "elapsedMs": 215,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-faker-csv",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/2983c5e7-dfc5-4e6a-a36b-8dacdcac1259/node-process/output",
+      "outputType": "UTF-8 CSV",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/2983c5e7-dfc5-4e6a-a36b-8dacdcac1259/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 82,
+          "sha256": "ab03b78bc1310d9e7b519f70d9382a463b714696472c73742a959c06fb28ca79"
+        },
+        {
+          "path": "companies.csv",
+          "bytes": 449,
+          "sha256": "20229b98f43625741b070fb04d91e0ff9cd4735b1df6d7b5cf2f9733ce6988cd"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

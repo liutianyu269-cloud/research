@@ -1,0 +1,1027 @@
+From 622b6c55d41d245c6af10cb763cddc9490055836 Mon Sep 17 00:00:00 2001
+From: Codex <codex@users.noreply.github.com>
+Date: Mon, 23 Nov 2026 23:44:43 +0800
+Subject: [PATCH 1/2] Add isolated SkillGenBench manual orchestration page
+
+---
+ app/liutianyu-skill-lab/lab.module.css      | 117 ++++
+ app/liutianyu-skill-lab/lab.tsx             | 223 ++++++++
+ app/liutianyu-skill-lab/page.tsx            |  11 +
+ app/liutianyu-skill-lab/recorded.json       | 568 ++++++++++++++++++++
+ app/liutianyu-skill-lab/workflow-canvas.tsx |  57 ++
+ 5 files changed, 976 insertions(+)
+ create mode 100644 app/liutianyu-skill-lab/lab.module.css
+ create mode 100644 app/liutianyu-skill-lab/lab.tsx
+ create mode 100644 app/liutianyu-skill-lab/page.tsx
+ create mode 100644 app/liutianyu-skill-lab/recorded.json
+ create mode 100644 app/liutianyu-skill-lab/workflow-canvas.tsx
+
+diff --git a/app/liutianyu-skill-lab/lab.module.css b/app/liutianyu-skill-lab/lab.module.css
+new file mode 100644
+index 0000000..6edbe90
+--- /dev/null
++++ b/app/liutianyu-skill-lab/lab.module.css
+@@ -0,0 +1,117 @@
++.app {
++  --ink: #172733;
++  --muted: #546572;
++  --line: #dbe4e6;
++  --accent: #076c63;
++  min-height: 100vh;
++  background: #f0f4f5;
++  color: var(--ink);
++  font-family: "Geist", "Microsoft YaHei", "PingFang SC", sans-serif;
++}
++
++.header {
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++  gap: 18px;
++  min-height: 66px;
++  padding: 10px max(28px, calc((100vw - 1510px) / 2));
++  color: #eef6f6;
++  background: #132b35;
++}
++
++.brand, .headerRight, .connection { display: flex; align-items: center; gap: 13px; }
++.brand { font-size: 15px; font-weight: 650; white-space: nowrap; }
++.mark { display: grid; place-items: center; border-radius: 9px; width: 32px; height: 32px; background: #abf2dc; color: #0c453d; font-size: 19px; }
++.divider { width: 1px; height: 20px; background: #45606a; }
++.crumb, .connection { color: #bfd0d5; font-size: 12px; font-weight: 500; }
++.connection { gap: 7px; white-space: nowrap; }
++.connection i { width: 7px; height: 7px; border-radius: 50%; background: #d9ad70; }
++.connection[data-online=true] i { background: #7edfb8; }
++.headerButton { padding: 7px 10px; border: 1px solid #45606a; border-radius: 6px; color: #f1f6f7; white-space: nowrap; }
++
++.shell { width: min(1510px, 100% - 56px); margin: 0 auto; padding: 35px 0 40px; }
++.heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 26px; }
++.kicker { margin-bottom: 8px; color: var(--accent); font: 600 13px/1.4 "Geist Mono", Consolas, monospace; }
++.heading h1 { margin-bottom: 9px; font-size: clamp(27px, 3vw, 38px); font-weight: 700; line-height: 1.22; letter-spacing: -.045em; }
++.subtitle, .notice { color: var(--muted); font-size: 14px; line-height: 1.65; }
++.notice { padding: 11px 14px; margin: 0 0 18px; background: #fff4dc; border: 1px solid #f1deb7; border-radius: 7px; color: #785019; }
++.metrics { display: flex; flex-wrap: wrap; gap: 8px; }
++.metrics div { display: flex; gap: 14px; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 8px 13px; }
++.metrics dt { color: var(--muted); font-size: 12px; }
++.metrics dd { color: #14383c; font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
++
++.grid { display: grid; grid-template-columns: minmax(235px, 0.8fr) minmax(0, 1.55fr) minmax(260px, .94fr); gap: 15px; align-items: start; }
++.sidebar, .center, .inspector { background: #fff; border: 1px solid var(--line); border-radius: 11px; min-width: 0; }
++.panelTitle { min-height: 53px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 15px; border-bottom: 1px solid var(--line); }
++.panelTitle h2 { font-size: 15px; font-weight: 700; }
++.panelTitle span { color: var(--muted); font-size: 12px; }
++.caseList { display: grid; gap: 4px; padding: 7px; }
++.case { display: flex; min-height: 48px; text-align: left; align-items: center; justify-content: space-between; gap: 5px; padding: 6px 8px; border: 1px solid transparent; border-radius: 7px; }
++.case:hover { background: #f1f6f6; }
++.case[aria-current=true] { border-color: #addbd2; background: #e9f6f2; }
++.caseMain { display: grid; gap: 2px; text-align: left; min-width: 0; }
++.caseMain code { color: #24404a; font-size: 12px; font-weight: 650; overflow-wrap: anywhere; }
++.caseMain span { color: var(--muted); font-size: 11px; line-height: 1.35; }
++.case small, .skillState { flex: none; border-radius: 99px; color: #495d69; padding: 3px 6px; background: #edf1f3; font-size: 10px; white-space: nowrap; }
++.case small[data-kind=已通过], .skillState[data-loaded=true] { color: #086c56; background: #dff3ea; }
++.case small[data-kind=评测冲突] { color: #85541b; background: #fff0d6; }
++.case small[data-kind=原判未过] { color: #823a35; background: #f9ebe8; }
++
++.caseHeading { display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 17px 18px 14px; min-height: 81px; }
++.caseHeading code { color: var(--accent); font-size: 12px; }
++.caseHeading h2 { font-size: 20px; line-height: 1.27; font-weight: 700; margin-top: 4px; }
++.skillState { font-size: 11px; padding: 5px 9px; }
++.controls { display: flex; align-items: center; gap: 17px; padding: 0 18px 11px; }
++.controls label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
++.controls input { accent-color: var(--accent); width: 14px; height: 14px; }
++.canvas { height: 343px; position: relative; overflow: hidden; background: #f5f9f8; border-block: 1px solid var(--line); isolation: isolate; }
++.canvas > div { width: 100%; height: 100%; }
++.canvasNode { height: 55px; display: grid; align-content: center; gap: 2px; padding: 4px 9px; line-height: 1.35; color: #173e43; }
++.canvasNode strong { font-size: 13px; }
++.canvasNode span { font-size: 11px; color: #537073; }
++.stageList { display: flex; flex-wrap: wrap; gap: 7px; list-style: none; padding: 11px 14px; color: #465965; font-size: 11px; }
++.stageList li { display: flex; align-items: center; gap: 5px; background: #edf4f3; border-radius: 4px; padding: 4px 5px; }
++.stageList li span { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 700; }
++.footer { display: flex; justify-content: end; flex-wrap: wrap; gap: 8px; padding: 10px 15px 15px; }
++.primary, .secondary { border: 1px solid #bccdce; border-radius: 6px; padding: 7px 10px; color: #163c40; font-size: 12px; font-weight: 650; }
++.primary { color: #fff; background: var(--accent); border-color: var(--accent); }
++.primary:hover { background: #095950; }
++.secondary:hover { background: #ecf5f3; }
++.app button:disabled { opacity: .57; cursor: not-allowed; }
++.app button:focus-visible, .app a:focus-visible, .app input:focus-visible { outline: 2px solid #108b7c; outline-offset: 3px; }
++
++.evidenceBlock { display: grid; align-content: start; gap: 7px; padding: 14px 15px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
++.evidenceBlock:last-child { border-bottom: 0; }
++.evidenceBlock h3 { font-size: 13px; font-weight: 700; }
++.evidenceBlock p, .evidenceBlock a { font-size: 12px; line-height: 1.6; }
++.evidenceBlock p { color: var(--muted); }
++.evidenceBlock a { color: var(--accent); width: fit-content; text-decoration: underline; text-underline-offset: 2px; }
++.evidenceBlock .conflict { border-left: 3px solid #d6ac5e; background: #fff6e2; padding: 6px 8px; color: #755025; }
++.evidenceBlock .upstream { color: #426166; }
++.scores { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; border-block: 1px solid var(--line); padding: 8px 0; }
++.scores dt { color: var(--muted); font-size: 10px; }
++.scores dd { font-weight: 650; font-size: 15px; font-variant-numeric: tabular-nums; }
++.artifact { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; line-height: 1.4; font-size: 11px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 5px; }
++.artifact small { color: var(--muted); }
++.evidenceBlock > button { justify-self: start; }
++
++@media (max-width: 1070px) {
++  .shell { width: calc(100% - 36px); }
++  .heading { align-items: start; flex-direction: column; }
++  .grid { grid-template-columns: minmax(215px,.73fr) minmax(0,1.6fr); }
++  .inspector { grid-column: 2; }
++}
++@media (max-width: 675px) {
++  .header { flex-wrap: wrap; padding: 9px 12px; gap: 9px; }
++  .shell { width: calc(100% - 24px); padding-top: 25px; }
++  .grid { grid-template-columns: minmax(0,1fr); }
++  .inspector { grid-column: 1; }
++  .caseList { grid-template-columns: repeat(2,minmax(0,1fr)); }
++  .canvas { height: 343px; }
++}
++@media (max-width: 430px) {
++  .caseList { grid-template-columns: 1fr; }
++  .metrics div { gap: 6px; padding: 5px 8px; }
++  .metrics dd { font-size: 17px; }
++}
+\ No newline at end of file
+diff --git a/app/liutianyu-skill-lab/lab.tsx b/app/liutianyu-skill-lab/lab.tsx
+new file mode 100644
+index 0000000..656dd87
+--- /dev/null
++++ b/app/liutianyu-skill-lab/lab.tsx
+@@ -0,0 +1,223 @@
++"use client";
++
++import dynamic from "next/dynamic";
++import { useEffect, useMemo, useState } from "react";
++import type { Node } from "./workflow-canvas";
++import recorded from "./recorded.json";
++import styles from "./lab.module.css";
++
++const Canvas = dynamic(() => import("./workflow-canvas"), { ssr: false });
++const endpoint = (process.env.NEXT_PUBLIC_LTY_SKILL_BACKEND ?? "http://127.0.0.1:33479") + "/api/engine/flow";
++const flowId = "@com.horsecoder.skilllab.liutianyu/MANUAL_SKILL_LAB";
++
++type Case = {
++  id: string;
++  title: string;
++  method: string;
++  skill: string;
++  source: string;
++  upstreamCase: string | null;
++  oldScore: number | null;
++  noSkillScore: number | null;
++  oldProblem: string;
++  conflict: string | null;
++  output: string;
++};
++
++type Run = {
++  id: string;
++  stepsDone: string[];
++  status: string;
++  message: string | null;
++  artifact: { name: string; bytes: number; sha256: string } | null;
++  skill: { body: string; sha256: string };
++  validation: { passed: boolean; message: string } | null;
++  score: { value: number | null; comment: string | null; status: string } | null;
++};
++
++type Snapshot = { cases: Case[]; loaded: string[]; latest: Record<string, Run> };
++type Action = "list" | "register" | "unload" | "run";
++
++async function request(action: Action, task?: string, steps?: string[]) {
++  const response = await fetch(endpoint, {
++    method: "POST",
++    headers: { "Content-Type": "application/json" },
++    body: JSON.stringify({ flowId, params: { structure: JSON.stringify({ action, task, steps }) } }),
++  });
++  const payload = await response.json();
++  if (!response.ok || !payload.ok) {
++    throw new Error(payload.error ?? "课程后端请求失败");
++  }
++  return payload.data as Snapshot;
++}
++
++function scoreText(value: number | null | undefined) {
++  if (value == null) return "未评分";
++  return Number.isInteger(value) ? String(value) : value.toFixed(2);
++}
++
++export default function ManualSkillLab() {
++  const [data, setData] = useState<Snapshot>(recorded as Snapshot);
++  const [active, setActive] = useState("ScikitImage_gen06");
++  const [validate, setValidate] = useState(true);
++  const [grade, setGrade] = useState(true);
++  const [online, setOnline] = useState(false);
++  const [pending, setPending] = useState<Action | null>("list");
++  const [message, setMessage] = useState("");
++  const selected = data.cases.find((item) => item.id === active) ?? data.cases[0];
++  const current = data.latest[selected.id];
++  const registered = data.loaded.includes(selected.id);
++  const recordedRuns = Object.values(data.latest);
++  const passes = recordedRuns.filter((run) => run.score?.value === 1).length;
++
++  const nodes = useMemo<Node[]>(() => [
++    { id: "read", label: "读取原始输入", detail: selected.id },
++    { id: "execute", label: selected.title, detail: "调用已注册的 Skill" },
++    ...(validate ? [{ id: "validate", label: "校验任务产物", detail: selected.output }] : []),
++    ...(grade ? [{ id: "grade", label: "原评分器复评", detail: "记录原生结果与错误" }] : []),
++  ], [selected, validate, grade]);
++
++  useEffect(() => {
++    let activeRequest = true;
++    request("list").then((snapshot) => {
++      if (activeRequest) {
++        setData(snapshot);
++        setOnline(true);
++      }
++    }).catch(() => {
++      if (activeRequest) setMessage("课程后端未连接，当前显示已保存的原题记录。");
++    }).finally(() => {
++      if (activeRequest) setPending(null);
++    });
++    return () => { activeRequest = false; };
++  }, []);
++
++  async function operate(action: Action) {
++    setPending(action);
++    setMessage("");
++    try {
++      const result = await request(action, selected.id, nodes.map((node) => node.id));
++      setData((prior) => ({ ...prior, ...result }));
++      setOnline(true);
++    } catch (error) {
++      setMessage(error instanceof Error ? error.message : "执行失败");
++    } finally {
++      setPending(null);
++    }
++  }
++
++  function exportCurrent() {
++    const contents = JSON.stringify({ case: selected, run: current }, null, 2);
++    const url = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
++    const anchor = document.createElement("a");
++    anchor.href = url;
++    anchor.download = selected.id + "-复评记录.json";
++    anchor.click();
++    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
++  }
++
++  return (
++    <main className={styles.app}>
++      <header className={styles.header}>
++        <div className={styles.brand}>
++          <span className={styles.mark} aria-hidden="true">S</span>
++          <span>Skill 工作台</span>
++          <span className={styles.divider} />
++          <span className={styles.crumb}>刘添予 / 人工编排</span>
++        </div>
++        <div className={styles.headerRight}>
++          <span className={styles.connection} data-online={online}><i />{online ? "已连接课程后端" : "本地记录"}</span>
++          <button className={styles.headerButton} onClick={() => void operate("list")} disabled={pending != null}>刷新连接</button>
++        </div>
++      </header>
++      <div className={styles.shell}>
++        <div className={styles.heading}>
++          <div>
++            <p className={styles.kicker}>SkillGenBench</p>
++            <h1>原题修复工作台</h1>
++            <p className={styles.subtitle}>从仓库提炼 Skill，手工编排运行步骤，用原输入和原评分器复评。</p>
++          </div>
++          <dl className={styles.metrics}>
++            <div><dt>历史原题</dt><dd>{data.cases.length}</dd></div>
++            <div><dt>生成产物</dt><dd>{recordedRuns.filter((run) => run.artifact).length}</dd></div>
++            <div><dt>本轮原判通过</dt><dd>{passes}</dd></div>
++          </dl>
++        </div>
++        {message && <p role="status" className={styles.notice}>{message}</p>}
++        <div className={styles.grid}>
++          <aside className={styles.sidebar} aria-label="历史题目">
++            <div className={styles.panelTitle}><h2>历史题目</h2><span>{data.cases.length} 道</span></div>
++            <div className={styles.caseList}>
++              {data.cases.map((item) => {
++                const latest = data.latest[item.id];
++                let state = "待复评";
++                if (item.conflict) state = "评测冲突";
++                else if (latest?.score?.value === 1) state = "已通过";
++                else if (latest?.score?.value === 0) state = "原判未过";
++                else if (latest?.artifact) state = "已产出";
++                return (
++                  <button key={item.id} aria-current={item.id === selected.id} className={styles.case}
++                    onClick={() => setActive(item.id)} disabled={pending != null}>
++                    <span className={styles.caseMain}><code>{item.id}</code><span>{item.title}</span></span>
++                    <small data-kind={state}>{state}</small>
++                  </button>
++                );
++              })}
++            </div>
++          </aside>
++          <section className={styles.center} aria-label="人工编排">
++            <div className={styles.caseHeading}>
++              <div><code>{selected.id}</code><h2>{selected.title}</h2></div>
++              <span className={styles.skillState} data-loaded={registered}>{registered ? "Skill 已注册" : "Skill 未加载"}</span>
++            </div>
++            <div className={styles.controls}>
++              <label><input type="checkbox" checked={validate} onChange={(event) => setValidate(event.target.checked)} />校验产物</label>
++              <label><input type="checkbox" checked={grade} onChange={(event) => setGrade(event.target.checked)} />原题复评</label>
++            </div>
++            <Canvas nodes={nodes} />
++            <ol className={styles.stageList} aria-label="执行清单">
++              {nodes.map((node, index) => <li key={node.id}><span>{index + 1}</span>{node.label}</li>)}
++            </ol>
++            <div className={styles.footer}>
++              <button className={styles.secondary} onClick={() => void operate(registered ? "unload" : "register")}
++                disabled={!online || pending != null}>{registered ? "卸载 Skill" : "注册 Skill"}</button>
++              <button className={styles.primary} onClick={() => void operate("run")}
++                disabled={!online || !registered || pending != null}>{pending === "run" ? "正在执行…" : "运行选中流程"}</button>
++            </div>
++          </section>
++          <aside className={styles.inspector} aria-label="结果与证据">
++            <div className={styles.panelTitle}><h2>结果与证据</h2></div>
++            <div className={styles.evidenceBlock}>
++              <h3>原失败记录</h3>
++              <p>{selected.oldProblem}</p>
++              {selected.conflict && <p className={styles.conflict}>{selected.conflict}</p>}
++              <dl className={styles.scores}>
++                <div><dt>无 Skill 基线</dt><dd>{scoreText(selected.noSkillScore)}</dd></div>
++                <div><dt>旧有 Skill</dt><dd>{scoreText(selected.oldScore)}</dd></div>
++                <div><dt>本轮原判</dt><dd>{scoreText(current?.score?.value)}</dd></div>
++              </dl>
++            </div>
++            <div className={styles.evidenceBlock}>
++              <h3>从仓库抽取的做法</h3>
++              <p>{selected.method}</p>
++              <a href={selected.source} target="_blank" rel="noreferrer">查看代码仓库 ↗</a>
++              {selected.upstreamCase && <p className={styles.upstream}>关联 GitTaskBench 题 <code>{selected.upstreamCase}</code></p>}
++            </div>
++            <div className={styles.evidenceBlock}>
++              <h3>本次执行记录</h3>
++              {current?.validation && <p><strong>{current.validation.passed ? "产物校验通过" : "产物校验失败"}</strong> {current.validation.message}</p>}
++              <p>{current?.score?.comment ?? current?.message ?? (current ? "本次流程未运行原评分器。" : "等待执行。")}</p>
++              {current?.artifact && (
++                <div className={styles.artifact}>
++                  <code>{current.artifact.name}</code>
++                  <small>{new Intl.NumberFormat("zh-CN").format(current.artifact.bytes)} 字节</small>
++                </div>
++              )}
++              {current && <button className={styles.secondary} onClick={exportCurrent}>导出复评记录</button>}
++            </div>
++          </aside>
++        </div>
++      </div>
++    </main>
++  );
++}
+diff --git a/app/liutianyu-skill-lab/page.tsx b/app/liutianyu-skill-lab/page.tsx
+new file mode 100644
+index 0000000..c89f0c4
+--- /dev/null
++++ b/app/liutianyu-skill-lab/page.tsx
+@@ -0,0 +1,11 @@
++import type { Metadata } from "next";
++import ManualSkillLab from "./lab";
++
++export const metadata: Metadata = {
++  title: "SkillGenBench 人工编排 · 刘添予",
++  description: "课程 Skill 工作流的原题执行和复评",
++};
++
++export default function Page() {
++  return <ManualSkillLab />;
++}
+\ No newline at end of file
+diff --git a/app/liutianyu-skill-lab/recorded.json b/app/liutianyu-skill-lab/recorded.json
+new file mode 100644
+index 0000000..3aa6b76
+--- /dev/null
++++ b/app/liutianyu-skill-lab/recorded.json
+@@ -0,0 +1,568 @@
++{
++  "cases": [
++    {
++      "id": "Eparse_gtb01",
++      "title": "复核工作簿与报告布局",
++      "method": "按文件和工作表遍历，保留表头与原值。",
++      "skill": "reporting-excel-tables-with-eparse",
++      "source": "https://github.com/ChrisPappalardo/eparse",
++      "upstreamCase": "Eparse_01",
++      "oldScore": 0.0,
++      "noSkillScore": 1.0,
++      "oldProblem": "Output text does not match reference text after normalization",
++      "oldStatus": "completed",
++      "conflict": null,
++      "output": "eparse_report.txt"
++    },
++    {
++      "id": "Eparse_gtb02",
++      "title": "逐单元格写出 JSON Lines",
++      "method": "从 Eparse 按行提取单元格记录；将格式争议留在评分侧。",
++      "skill": "serializing-eparse-cells-to-jsonl",
++      "source": "https://github.com/ChrisPappalardo/eparse",
++      "upstreamCase": "Eparse_02",
++      "oldScore": 0.0,
++      "noSkillScore": 0.0,
++      "oldProblem": "Invalid JSON: Extra data: line 2 column 1 (char 174)",
++      "oldStatus": "completed",
++      "conflict": "原题要求逐行 JSON，旧评分器整文件调用 json.loads。",
++      "output": "eparse_cells.jsonl"
++    },
++    {
++      "id": "MoviePy_gen01",
++      "title": "等比缩放与居中补边",
++      "method": "按短边适配画布，保持帧率和画幅，编码 H.264。",
++      "skill": "letterboxing-video-with-moviepy",
++      "source": "https://github.com/Zulko/moviepy",
++      "upstreamCase": null,
++      "oldScore": 1.0,
++      "noSkillScore": 1.0,
++      "oldProblem": "Video successfully resized to 640x480 with proper letterboxing and H.264 encoding",
++      "oldStatus": "completed",
++      "conflict": null,
++      "output": "resized_output.mp4"
++    },
++    {
++      "id": "NeuroKit_gtb01",
++      "title": "汇总 EDA 的 SCR 与 tonic 指标",
++      "method": "复用 EDA 清洗和峰值检测，按已核对的采样率计算三项统计。",
++      "skill": "summarizing-electrodermal-scr-metrics",
++      "source": "https://github.com/neuropsychology/NeuroKit",
++      "upstreamCase": "NeuroKit_01",
++      "oldScore": null,
++      "noSkillScore": null,
++      "oldProblem": "上次模型耗尽输出额度，未取得有效分数。",
++      "oldStatus": "error",
++      "conflict": null,
++      "output": "eda_scr_metrics.csv"
++    },
++    {
++      "id": "NeuroKit_gtb02",
++      "title": "导出 ECG 的 R/P 峰索引",
++      "method": "使用 150 Hz 处理 ECG，按检测列导出索引列表。",
++      "skill": "exporting-ecg-r-and-p-peak-lists",
++      "source": "https://github.com/neuropsychology/NeuroKit",
++      "upstreamCase": "NeuroKit_02",
++      "oldScore": 0.0,
++      "noSkillScore": 0.0,
++      "oldProblem": "Output CSV does not exactly match the reference table",
++      "oldStatus": "completed",
++      "conflict": null,
++      "output": "ecg_peaks.csv"
++    },
++    {
++      "id": "NeuroKit_gtb03",
++      "title": "提取呼吸峰与呼吸频率",
++      "method": "读取实际存在的 RSP 列；采样率 100 Hz 来自匹配的 NeuroKit 公开样例。",
++      "skill": "distinguishing-eog-blinks-from-respiration",
++      "source": "https://github.com/neuropsychology/NeuroKit",
++      "upstreamCase": "NeuroKit_03",
++      "oldScore": 0.0,
++      "noSkillScore": null,
++      "oldProblem": "Output CSV does not exactly match the reference table",
++      "oldStatus": "completed",
++      "conflict": null,
++      "output": "eog_metrics.csv"
++    },
++    {
++      "id": "Pillow_gen01",
++      "title": "按 HSV 范围生成掩膜",
++      "method": "转换颜色尺度后合并三个通道条件，输出 0/255 的 L 模式 PNG。",
++      "skill": "thresholding-hsv-masks-with-pillow",
++      "source": "https://github.com/python-pillow/Pillow",
++      "upstreamCase": null,
++      "oldScore": 1.0,
++      "noSkillScore": 1.0,
++      "oldProblem": "✓ Image mode is 'L'; ✓ Dimensions are 1200×837; ✓ Image contains only binary values (0 and 255); ✓ White pixel percentage is 5.87% (within 5-50% range); ✓ Image format is PNG; ✓ Image is truly single-channel (2D array)",
++      "oldStatus": "completed",
++      "conflict": null,
++      "output": "color_mask.png"
++    },
++    {
++      "id": "PyPDF2_gtb03",
++      "title": "输出 PDF 文档元数据",
++      "method": "从文档信息字典读取命名字段，统一日期表示。",
++      "skill": "exporting-pdf-document-metadata",
++      "source": "https://github.com/py-pdf/pypdf",
++      "upstreamCase": "PyPDF2_03",
++      "oldScore": 0.0,
++      "noSkillScore": 0.0,
++      "oldProblem": "Output JSON does not semantically match the reference JSON",
++      "oldStatus": "completed",
++      "conflict": null,
++      "output": "pdf_metadata.json"
++    },
++    {
++      "id": "ScikitImage_gen05",
++      "title": "找到二值掩膜并着色",
++      "method": "识别带前景和背景的有效输入，按连通域分配 RGB 颜色。",
++      "skill": "coloring-connected-mask-components",
++      "source": "https://github.com/scikit-image/scikit-image",
++      "upstreamCase": null,
++      "oldScore": null,
++      "noSkillScore": null,
++      "oldProblem": "旧评分器找不到掩膜；历史诊断中产物只有一种颜色。",
++      "oldStatus": "error",
++      "conflict": "原评分器在输入路径下找不到掩膜；题包将二值图放在子目录中。",
++      "output": "labeled_components.png"
++    },
++    {
++      "id": "ScikitImage_gen06",
++      "title": "以原始灰度计算 Otsu 阈值",
++      "method": "逐像素应用灰度大于阈值的规则，保留原尺寸并输出 8 位 PNG。",
++      "skill": "exporting-otsu-binary-masks",
++      "source": "https://github.com/scikit-image/scikit-image",
++      "upstreamCase": null,
++      "oldScore": 0.0,
++      "noSkillScore": 0.0,
++      "oldProblem": "Foreground ratio 0.012 is below minimum 0.05",
++      "oldStatus": "completed",
++      "conflict": "原图按题面执行 Otsu 得出 1.17% 前景；旧评分器要求至少 5%。",
++      "output": "mask.png"
++    }
++  ],
++  "loaded": [
++    "Eparse_gtb01",
++    "Eparse_gtb02",
++    "MoviePy_gen01",
++    "NeuroKit_gtb01",
++    "NeuroKit_gtb02",
++    "NeuroKit_gtb03",
++    "PyPDF2_gtb03",
++    "ScikitImage_gen05",
++    "ScikitImage_gen06",
++    "Pillow_gen01"
++  ],
++  "latest": {
++    "Eparse_gtb01": {
++      "id": "Eparse_gtb01-78b4f4835387",
++      "task": "Eparse_gtb01",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "eparse_report.txt",
++        "bytes": 814,
++        "sha256": "6c1ab7790c1f5a5745e1e6dab2b12f5bf237a3c68b9aee75eedaeb88a9c6d81f"
++      },
++      "skill": {
++        "sha256": "07e97fc6615d54ca0c54e13e5acc0a041ecddc402c3325e0c264898d7b9afab1",
++        "body": "---\nname: reporting-excel-tables-with-eparse-manual\ndescription: \"按文件和工作表遍历，保留表头与原值。\"\n---\n\n# 复核工作簿与报告布局\n\n按文件和工作表遍历，保留表头与原值。\n\n技术来源 [documents](https://github.com/ChrisPappalardo/eparse)。对应 SkillGenBench 题目 `Eparse_gtb01`。\n\n```sh\npython scripts/documents.py Eparse_gtb01 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `eparse_report.txt`。输出目录须已存在。\n\n历史 Skill SHA-256 `973238f25f4c64a505a75d6d4ba7e9cbdd62434eb85a3d43155994d9c02112d1`\n",
++        "manualMethod": "按文件和工作表遍历，保留表头与原值。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Output text does not match reference text after normalization",
++        "exitCode": 0,
++        "referenceAvailable": true,
++        "graderSha256": "af4efed7a1c26c2b2299475bb03ae941486d775e01534e9c809a5696994b854b"
++      },
++      "validation": {
++        "passed": true,
++        "message": "报告覆盖 2 张工作表。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "Eparse_gtb02": {
++      "id": "Eparse_gtb02-8d1ba8fd1993",
++      "task": "Eparse_gtb02",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "eparse_cells.jsonl",
++        "bytes": 12203,
++        "sha256": "2ce9dc7eae7b337dff269dd3dbf1180db7117c0ef0f1b09ff90816190d18d006"
++      },
++      "skill": {
++        "sha256": "adb5c1193ebb77df63f45dc80224f7b47214ce36f20c46effbf762d97ea78250",
++        "body": "---\nname: serializing-eparse-cells-to-jsonl-manual\ndescription: \"从 Eparse 按行提取单元格记录；将格式争议留在评分侧。\"\n---\n\n# 逐单元格写出 JSON Lines\n\n从 Eparse 按行提取单元格记录；将格式争议留在评分侧。\n\n技术来源 [documents](https://github.com/ChrisPappalardo/eparse)。对应 SkillGenBench 题目 `Eparse_gtb02`。\n\n```sh\npython scripts/documents.py Eparse_gtb02 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `eparse_cells.jsonl`。输出目录须已存在。\n\n历史 Skill SHA-256 `7805b9547d8882bc5847804e616b5f00c90c45e45dfafafc8921917ad911532e`\n",
++        "manualMethod": "从 Eparse 按行提取单元格记录；将格式争议留在评分侧。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Invalid JSON: Extra data: line 2 column 1 (char 174)",
++        "exitCode": 0,
++        "referenceAvailable": true,
++        "graderSha256": "45a492d0298efda768441d9d999dbee7cdfe6d850f38bacb49edba6328a2d938"
++      },
++      "validation": {
++        "passed": true,
++        "message": "60 行有效 JSON 对象，覆盖原工作簿的非空单元格。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "MoviePy_gen01": {
++      "id": "MoviePy_gen01-37e2274de70e",
++      "task": "MoviePy_gen01",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "resized_output.mp4",
++        "bytes": 2363781,
++        "sha256": "3ad65368fc527d3d946eefaaf062320b4f7eaf8ef9e6350ff573f644a5577693"
++      },
++      "skill": {
++        "sha256": "3c5f875a10b797f179e89bdf6db64afeaf282bad2a74cbae56c1c45845f7f0dc",
++        "body": "---\nname: letterboxing-video-with-moviepy-manual\ndescription: \"按短边适配画布，保持帧率和画幅，编码 H.264。\"\n---\n\n# 等比缩放与居中补边\n\n按短边适配画布，保持帧率和画幅，编码 H.264。\n\n技术来源 [media](https://github.com/Zulko/moviepy)。对应 SkillGenBench 题目 `MoviePy_gen01`。\n\n```sh\npython scripts/media.py MoviePy_gen01 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `resized_output.mp4`。输出目录须已存在。\n\n历史 Skill SHA-256 `0324e1abdece55d36adc8c2353481aa9bf7052e3cc82e62ab926684f731ae9e8`\n",
++        "manualMethod": "按短边适配画布，保持帧率和画幅，编码 H.264。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 1,
++        "process": true,
++        "comment": "Video successfully resized to 640x480 with proper letterboxing and H.264 encoding",
++        "exitCode": 0,
++        "referenceAvailable": null,
++        "graderSha256": "16b1bc3b69df8a3277db7738b5c33299c47bd035921664923661bbe838bb76ed"
++      },
++      "validation": {
++        "passed": true,
++        "message": "输出视频可解码，尺寸为 640×480。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "NeuroKit_gtb01": {
++      "id": "NeuroKit_gtb01-02963fa53594",
++      "task": "NeuroKit_gtb01",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "eda_scr_metrics.csv",
++        "bytes": 89,
++        "sha256": "b9a4a5caab04c57ffdeaabd4bf7c7354ef67bece6911c16cf27b981842803266"
++      },
++      "skill": {
++        "sha256": "4f6d1cec91dc59cafe733edda23d3d4024cc61209f44ab1962ce9876019e0cc2",
++        "body": "---\nname: summarizing-electrodermal-scr-metrics-manual\ndescription: \"复用 EDA 清洗和峰值检测，按已核对的采样率计算三项统计。\"\n---\n\n# 汇总 EDA 的 SCR 与 tonic 指标\n\n复用 EDA 清洗和峰值检测，按已核对的采样率计算三项统计。\n\n技术来源 [signals](https://github.com/neuropsychology/NeuroKit)。对应 SkillGenBench 题目 `NeuroKit_gtb01`。\n\n```sh\npython scripts/signals.py NeuroKit_gtb01 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `eda_scr_metrics.csv`。输出目录须已存在。\n\n历史 Skill SHA-256 `19bb4e13d58210951c2942da2d4a137111839b534b44b4b0b931a942612e8389`\n",
++        "manualMethod": "复用 EDA 清洗和峰值检测，按已核对的采样率计算三项统计。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Output CSV does not exactly match the reference table",
++        "exitCode": 0,
++        "referenceAvailable": true,
++        "graderSha256": "1a8e201157ca9e3944426aad58e37b308b731840e9a20e7cd24d47f7c9d31430"
++      },
++      "validation": {
++        "passed": true,
++        "message": "EDA 汇总表包含三项指标。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "NeuroKit_gtb02": {
++      "id": "NeuroKit_gtb02-d99aab284768",
++      "task": "NeuroKit_gtb02",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "ecg_peaks.csv",
++        "bytes": 126,
++        "sha256": "451563defa8fd0790fb64861e45ce57e0d670e9382c9b2afc1bb39654ffde59f"
++      },
++      "skill": {
++        "sha256": "a8b2988051165574de044726ad7c0306bdc1972253515dfebd850d247cb8dd66",
++        "body": "---\nname: exporting-ecg-r-and-p-peak-lists-manual\ndescription: \"使用 150 Hz 处理 ECG，按检测列导出索引列表。\"\n---\n\n# 导出 ECG 的 R/P 峰索引\n\n使用 150 Hz 处理 ECG，按检测列导出索引列表。\n\n技术来源 [signals](https://github.com/neuropsychology/NeuroKit)。对应 SkillGenBench 题目 `NeuroKit_gtb02`。\n\n```sh\npython scripts/signals.py NeuroKit_gtb02 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `ecg_peaks.csv`。输出目录须已存在。\n\n历史 Skill SHA-256 `e5119e7b0c78b159e9c5aa414f6be30dcb00ed5840f51980247ea6982bfb40cd`\n",
++        "manualMethod": "使用 150 Hz 处理 ECG，按检测列导出索引列表。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Output CSV does not exactly match the reference table",
++        "exitCode": 0,
++        "referenceAvailable": true,
++        "graderSha256": "361322e48f62417e8dd3c42bcce1dd1192149c70088c4020cd5eac2feee8f583"
++      },
++      "validation": {
++        "passed": true,
++        "message": "CSV 指标列使用列表格式。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "NeuroKit_gtb03": {
++      "id": "NeuroKit_gtb03-b0514402c0e9",
++      "task": "NeuroKit_gtb03",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "eog_metrics.csv",
++        "bytes": 213,
++        "sha256": "86b360ef2669432055c5db3e4ff65aa9a8faaa5c5399a73ea5a1beae6b6df560"
++      },
++      "skill": {
++        "sha256": "016a74732979562171226bf1d4a604fce62dc750b86167072df2057272698984",
++        "body": "---\nname: distinguishing-eog-blinks-from-respiration-manual\ndescription: \"读取实际存在的 RSP 列；采样率 100 Hz 来自匹配的 NeuroKit 公开样例。\"\n---\n\n# 提取呼吸峰与呼吸频率\n\n读取实际存在的 RSP 列；采样率 100 Hz 来自匹配的 NeuroKit 公开样例。\n\n技术来源 [signals](https://github.com/neuropsychology/NeuroKit)。对应 SkillGenBench 题目 `NeuroKit_gtb03`。\n\n```sh\npython scripts/signals.py NeuroKit_gtb03 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `eog_metrics.csv`。输出目录须已存在。\n\n历史 Skill SHA-256 `159b0b9fc46e8f0a820850e691ceecc24446ecccf729710da22ab7af99cf0c98`\n",
++        "manualMethod": "读取实际存在的 RSP 列；采样率 100 Hz 来自匹配的 NeuroKit 公开样例。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Output CSV does not exactly match the reference table",
++        "exitCode": 0,
++        "referenceAvailable": true,
++        "graderSha256": "3d7db1eb218854c791804acb816c231a45cba7c78d393a5b41da4807d596d99e"
++      },
++      "validation": {
++        "passed": true,
++        "message": "CSV 指标列使用列表格式。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "Pillow_gen01": {
++      "id": "Pillow_gen01-cb52b6282c13",
++      "task": "Pillow_gen01",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "color_mask.png",
++        "bytes": 22682,
++        "sha256": "949b1636c457cf3ef07371cf793d977eb91628854a01bd42703ed609da40a0d6"
++      },
++      "skill": {
++        "sha256": "13a7946a2a9e53e4cef375968f154f33e0529725cdfa2c60045d4887417120e4",
++        "body": "---\nname: thresholding-hsv-masks-with-pillow-manual\ndescription: \"转换颜色尺度后合并三个通道条件，输出 0/255 的 L 模式 PNG。\"\n---\n\n# 按 HSV 范围生成掩膜\n\n转换颜色尺度后合并三个通道条件，输出 0/255 的 L 模式 PNG。\n\n技术来源 [media](https://github.com/python-pillow/Pillow)。对应 SkillGenBench 题目 `Pillow_gen01`。\n\n```sh\npython scripts/media.py Pillow_gen01 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `color_mask.png`。输出目录须已存在。\n\n历史 Skill SHA-256 `254d02a36551b996e031c4a5c1649573dc3ea75adb1559ac94e6c97cb26eafa7`\n",
++        "manualMethod": "转换颜色尺度后合并三个通道条件，输出 0/255 的 L 模式 PNG。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 1,
++        "process": true,
++        "comment": "✓ Image mode is 'L'; ✓ Dimensions are 1200×837; ✓ Image contains only binary values (0 and 255); ✓ White pixel percentage is 5.87% (within 5-50% range); ✓ Image format is PNG; ✓ Image is truly single-channel (2D array)",
++        "exitCode": 0,
++        "referenceAvailable": null,
++        "graderSha256": "3a9e6c03d4a844d9c5265a274d0cb34798d2dd1206c389260bc62953c2b5f19b"
++      },
++      "validation": {
++        "passed": true,
++        "message": "掩膜与原图同尺寸，使用 8 位单通道和 0/255 两种像素。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "PyPDF2_gtb03": {
++      "id": "PyPDF2_gtb03-4178dad65eae",
++      "task": "PyPDF2_gtb03",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "pdf_metadata.json",
++        "bytes": 232,
++        "sha256": "fc840b55af4a305b585e1dc1e83eb0c7072b520441aae0ebecee967ebab125d7"
++      },
++      "skill": {
++        "sha256": "af8941853d24b6ab6a713f70073209a10035b978d5c5e9e59935c267b69a2124",
++        "body": "---\nname: exporting-pdf-document-metadata-manual\ndescription: \"从文档信息字典读取命名字段，统一日期表示。\"\n---\n\n# 输出 PDF 文档元数据\n\n从文档信息字典读取命名字段，统一日期表示。\n\n技术来源 [documents](https://github.com/py-pdf/pypdf)。对应 SkillGenBench 题目 `PyPDF2_gtb03`。\n\n```sh\npython scripts/documents.py PyPDF2_gtb03 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `pdf_metadata.json`。输出目录须已存在。\n\n历史 Skill SHA-256 `a1e43834670fc8d3968af457ab25e9536c1d586905529772365d71595e5b5d6e`\n",
++        "manualMethod": "从文档信息字典读取命名字段，统一日期表示。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Output JSON does not semantically match the reference JSON",
++        "exitCode": 0,
++        "referenceAvailable": true,
++        "graderSha256": "56f52c90334a9acc8e3e69c09c4bd06d5a2d87e5180bf91f88d76f7de1677c0c"
++      },
++      "validation": {
++        "passed": true,
++        "message": "JSON 可读取，已核对原文档的命名字段和创建日期是否写入。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "ScikitImage_gen05": {
++      "id": "ScikitImage_gen05-b7f7ea08be94",
++      "task": "ScikitImage_gen05",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "labeled_components.png",
++        "bytes": 158,
++        "sha256": "97633bb96dbbc098d6d0bcd43422e539fb228fad88792cc97fb9185cd5162a34"
++      },
++      "skill": {
++        "sha256": "84e0f5814d51c47cf8e2918b9a6caede2be7c550810975a57dd87b716c65d9c9",
++        "body": "---\nname: coloring-connected-mask-components-manual\ndescription: \"识别带前景和背景的有效输入，按连通域分配 RGB 颜色。\"\n---\n\n# 找到二值掩膜并着色\n\n识别带前景和背景的有效输入，按连通域分配 RGB 颜色。\n\n技术来源 [media](https://github.com/scikit-image/scikit-image)。对应 SkillGenBench 题目 `ScikitImage_gen05`。\n\n```sh\npython scripts/media.py ScikitImage_gen05 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `labeled_components.png`。输出目录须已存在。\n\n历史 Skill SHA-256 `adfe59480f05611b9131a821d99bb1dd6afab31bac56f707ff176723ddaa9092`\n",
++        "manualMethod": "识别带前景和背景的有效输入，按连通域分配 RGB 颜色。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "No input mask image found in input directory",
++        "exitCode": 0,
++        "referenceAvailable": null,
++        "graderSha256": "079808409aa68b5bc9b5a8ceb4dfef3f5f0aa74995cc64ab462960fdc8ff8bd8"
++      },
++      "validation": {
++        "passed": true,
++        "message": "背景为黑色，1 个连通域各用一种不同的 RGB 颜色。"
++      },
++      "status": "produced",
++      "message": null
++    },
++    "ScikitImage_gen06": {
++      "id": "ScikitImage_gen06-dc9b6533a45b",
++      "task": "ScikitImage_gen06",
++      "steps": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "artifact": {
++        "name": "mask.png",
++        "bytes": 687,
++        "sha256": "ecb3dbaa50572ab8917976d2d5b8b986fa2071ad8cdacd50ca8c1d58f84db62b"
++      },
++      "skill": {
++        "sha256": "8d2e4c8e54b301c744986677663598968dbcccadff3847b4a60410659b3d6502",
++        "body": "---\nname: exporting-otsu-binary-masks-manual\ndescription: \"逐像素应用灰度大于阈值的规则，保留原尺寸并输出 8 位 PNG。\"\n---\n\n# 以原始灰度计算 Otsu 阈值\n\n逐像素应用灰度大于阈值的规则，保留原尺寸并输出 8 位 PNG。\n\n技术来源 [media](https://github.com/scikit-image/scikit-image)。对应 SkillGenBench 题目 `ScikitImage_gen06`。\n\n```sh\npython scripts/media.py ScikitImage_gen06 INPUT_DIR OUTPUT_DIR\n```\n\n脚本从题包的输入目录读取数据，在输出目录写入 `mask.png`。输出目录须已存在。\n\n历史 Skill SHA-256 `442ce7b0436fe78e14d4c39707fbbbf322cb8159265d5a73d4885d4902dc8db2`\n",
++        "manualMethod": "逐像素应用灰度大于阈值的规则，保留原尺寸并输出 8 位 PNG。"
++      },
++      "stepsDone": [
++        "read",
++        "execute",
++        "validate",
++        "grade"
++      ],
++      "score": {
++        "status": "scored",
++        "value": 0,
++        "process": true,
++        "comment": "Foreground ratio 0.012 is below minimum 0.05",
++        "exitCode": 0,
++        "referenceAvailable": null,
++        "graderSha256": "3bc09b356980d77cee3ebb90e582ad19ba6f2d09fc50423a032c52949de5beb5"
++      },
++      "validation": {
++        "passed": true,
++        "message": "逐像素匹配原图 Otsu 掩膜，阈值 0，前景 1.17%。"
++      },
++      "status": "produced",
++      "message": null
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/app/liutianyu-skill-lab/workflow-canvas.tsx b/app/liutianyu-skill-lab/workflow-canvas.tsx
+new file mode 100644
+index 0000000..f34e739
+--- /dev/null
++++ b/app/liutianyu-skill-lab/workflow-canvas.tsx
+@@ -0,0 +1,57 @@
++"use client";
++
++import { useEffect, useRef } from "react";
++import VisualDiagram from "@horsecoder/visual-core";
++import type { VisualCanvasConfig, VisualDiagramHandle, VisualElementProps } from "@horsecoder/visual-core";
++import styles from "./lab.module.css";
++
++export type Node = { id: string; label: string; detail: string };
++
++function StepElement({ element, pendant }: VisualElementProps) {
++  const subtitle = pendant?.data.detail.subtitle as string | undefined;
++  return (
++    <div className={styles.canvasNode}>
++      <strong>{element.state.name}</strong>
++      {subtitle && <span>{subtitle}</span>}
++    </div>
++  );
++}
++
++const config: VisualCanvasConfig = {
++  elementConfig: { components: { step: { component: StepElement, minSize: { width: 248, height: 56 } } } },
++  linkConfig: { components: { next: { hasArrow: true, showName: false } } },
++  toolbarConfig: [],
++  globalConfig: { gridSize: 20 },
++};
++
++export default function WorkflowCanvas({ nodes }: { nodes: Node[] }) {
++  const canvas = useRef<VisualDiagramHandle>(null);
++  const viewport = useRef<HTMLDivElement>(null);
++  useEffect(() => {
++    const container = viewport.current;
++    if (!container) return;
++    function renderWorkflow() {
++      const x = Math.max(12, Math.round(((container?.clientWidth ?? 248) - 248) / 2));
++      const elements = nodes.map((node, index) => ({
++        id: node.id, name: node.label, type: "step", color: "#0f766e",
++        x, y: 23 + index * 82, select: false, locked: true,
++        pendant: { data: { type: "step", detail: { subtitle: node.detail } }, onDataChange: () => {} },
++      }));
++      const links = elements.slice(1).map((node, index) => ({
++        id: "link-" + node.id, name: "传递产物", type: "next", color: "#0f766e",
++        fromElementId: elements[index].id, toElementId: node.id, points: [],
++      }));
++      canvas.current?.setView({ id: "liutianyu-manual-skill-lab", elements, links });
++    }
++    renderWorkflow();
++    const observer = new ResizeObserver(renderWorkflow);
++    observer.observe(container);
++    return () => observer.disconnect();
++  }, [nodes]);
++
++  return (
++    <div ref={viewport} className={styles.canvas} aria-label="课程编排画布">
++      <VisualDiagram ref={canvas} canvasConfig={config} />
++    </div>
++  );
++}

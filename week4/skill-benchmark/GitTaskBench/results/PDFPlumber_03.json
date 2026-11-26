@@ -1,0 +1,70 @@
+{
+  "caseId": "PDFPlumber_03",
+  "expectedOutput": "emails.txt",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PDFPlumber_03",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdfplumber-03",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-pdfplumber-emails",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pdfplumber-03",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 6
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 4
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "76e3bb6f-31c9-4aa1-aef2-edb9093b163f",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "PDFPlumber_03_input.pdf": "39e9d5e5876c0fc833fdc01e84019a0f5d2f74a203cf99070d359ac20603de45"
+    },
+    "artifactSha256": "862f4fbb497e9357d110546fa6c54607c53db49da9a343fe45b9dd7870b0667e",
+    "graderSha256": "57f1c6243f68d1c61798c11455d1b10f271c93bb4ceeef34ce50d2607ca9d879"
+  }
+}

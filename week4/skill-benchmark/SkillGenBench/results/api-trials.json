@@ -1,0 +1,378 @@
+{
+  "V1": [
+    {
+      "task": "Eparse_gtb01",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "2abad1e13d3fa13e41fc0e5b2c347386cf21d61ae1520ab9156651508895b31c"
+    },
+    {
+      "task": "Eparse_gtb02",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "abbc07d5ec02ac5864ad210249523acc942025e84718c916c73e08a063b78bfd"
+    },
+    {
+      "task": "NeuroKit_gtb01",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "214783e9f1832bc589c93647d656594b824d8efc200a54fb65881c94ca83c16f"
+    },
+    {
+      "task": "NeuroKit_gtb02",
+      "score": 0.0,
+      "apiRequests": 4,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "12f638ba8e9c0967813f9e7f2fb8f239fc7bbbc39600d8de3f1b4933d5777e34"
+    },
+    {
+      "task": "NeuroKit_gtb03",
+      "score": 0.0,
+      "apiRequests": 4,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "c350d182e2c04f63e7bfe2d8869efed2143f73d31fc64ccc07f8020bc1224c07"
+    },
+    {
+      "task": "Pillow_gen01",
+      "score": 1.0,
+      "apiRequests": 4,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "9b296c57a9df6bd01491b95e84010f6169c378b8f56fee3d8f062e612c61ed04"
+    }
+  ],
+  "V2": [
+    {
+      "task": "Eparse_gtb01",
+      "score": 0.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "ac3e947a1e711a67102d44104def05b8db9adb6dc3c90c87f23aadf4efd84cab"
+    },
+    {
+      "task": "Eparse_gtb01",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "1b5edd14476ed4798f33160def3fe798d30b5970202e491ee1699a95c8d81e3e"
+    },
+    {
+      "task": "Eparse_gtb02",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "e3f478315ffe7aac931c02768b06635cf8ac869e9dc1c9417fc9b597cec976ed"
+    },
+    {
+      "task": "Eparse_gtb02",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "6e02536f249bceeeafab5c7d98de46283345fa1da1025d4d316aee9ff2506c48"
+    },
+    {
+      "task": "MoviePy_gen01",
+      "score": 1.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "8aecca8fcec63dc277940ba57983cccf01147bb1c8c6da95047098aad1f2632a"
+    },
+    {
+      "task": "MoviePy_gen01",
+      "score": 1.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "25e8bd24c7f9d634ae1898d071a387c607c35a7d1bbc268f342644947ac71129"
+    },
+    {
+      "task": "NeuroKit_gtb01",
+      "score": 0.0,
+      "apiRequests": 4,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "73ac6d3774ccc566fd7b2be2234a311c7ed782f68a1ebf40765f725d6e9b9d22"
+    },
+    {
+      "task": "NeuroKit_gtb01",
+      "score": 0.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "2a43a2ca765861b2f6e16cd3e39eecc48b4776bc0f47fd8fafbfa2202864c527"
+    },
+    {
+      "task": "NeuroKit_gtb02",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "a9d0918551d74566ef4e63e66f7ac024a0e676f48be0605ed5d7813219f56e9e"
+    },
+    {
+      "task": "NeuroKit_gtb02",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "8bc7edb588cc736bcc39c9724c486f2d51889e5b8db109fed6a48da3e0677fea"
+    },
+    {
+      "task": "NeuroKit_gtb03",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "09ff44a477a4ffad06c915de541733f888da6c86cef24facd9b838c075c33af4"
+    },
+    {
+      "task": "NeuroKit_gtb03",
+      "score": 0.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "6d330b3b56ab8d7c39246a433cc5c8a2fe9857da402347ff0cba0190a251c934"
+    },
+    {
+      "task": "Pillow_gen01",
+      "score": 1.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "c9cc148626680baf6e633094800e79ecd3d649937c8c573edc58996c64636822"
+    },
+    {
+      "task": "Pillow_gen01",
+      "score": 1.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "50e8ec30f2caa8984d3d424c2ac2c2fe06eda62736185a071ccee170b8e28507"
+    },
+    {
+      "task": "PyPDF2_gtb03",
+      "score": 1.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "d56e3ebb62847bb4d07485caec93f041cf83919b5385860937d3c1ba4338b5bf"
+    },
+    {
+      "task": "PyPDF2_gtb03",
+      "score": 1.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "015c3d6f424ca29eeca9d87ae5350024c31742bbd4f884332ae484efee0d6219"
+    },
+    {
+      "task": "ScikitImage_gen05",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": "input_error",
+      "summarySha256": "d0ad33b556983f83d79ff5280f156b4ac4e6ed79ddf0f27dc5b8688f776dff8e"
+    },
+    {
+      "task": "ScikitImage_gen05",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": "input_error",
+      "summarySha256": "c95b18a7c9ec4cfad2d09436f1a79edc807ef2ec31ecb1f7479546f7e5c12c76"
+    },
+    {
+      "task": "ScikitImage_gen06",
+      "score": 0.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "57753d358b52b80aa24c3bfa31c25a4b6ec62206252cef7df4ef46b08b42bb58"
+    },
+    {
+      "task": "ScikitImage_gen06",
+      "score": 0.0,
+      "apiRequests": 4,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "4b2ac49eca6fbc605a45388945e6f479d97403a96f3b644366ee5159dd0c5fdc"
+    }
+  ],
+  "论文版": [
+    {
+      "task": "Eparse_gtb01",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "920541666ab4b62b1ab20371dd332dc1f2b70a35e97b2ce9133b585fd9ac6bf5"
+    },
+    {
+      "task": "Eparse_gtb02",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "51016edd71a83d9d87f6e0e255e7d2d7890ee167911a1ea32801ce905d001e63"
+    },
+    {
+      "task": "MoviePy_gen01",
+      "score": 1.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "7d07bf0f2c5029c352a700bd4d2a8e6fba45ca296b0653f8bbff300c3e42879f"
+    },
+    {
+      "task": "NeuroKit_gtb01",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "87a3715cf5b88223bd981a2737c927f9a9a7252d38f6626d7fa32d87f1dd21f5"
+    },
+    {
+      "task": "NeuroKit_gtb02",
+      "score": 0.0,
+      "apiRequests": 4,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "6a59f5e86cf01687f16de8ca9150966cbcbce5372abe4d8b63c7806ae89d1634"
+    },
+    {
+      "task": "NeuroKit_gtb03",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "871d10e620808aea573e234fbc1268c5adf50a36f9dbeec06b44709a1630bb8f"
+    },
+    {
+      "task": "Pillow_gen01",
+      "score": 1.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "dc92799cb49c4c5729a9082160eee6d5659d083f36331219668af8ed10feb2c4"
+    },
+    {
+      "task": "PyPDF2_gtb03",
+      "score": 1.0,
+      "apiRequests": 3,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "69beb2e2be9a8d505e5979b0f356776a1b615acab29297b8a45115c9c954360b"
+    },
+    {
+      "task": "ScikitImage_gen05",
+      "score": null,
+      "apiRequests": 5,
+      "trialStatus": "error",
+      "gradingStatus": "input_error",
+      "summarySha256": "b75608b614fd06d62df93bedab4c0053c0d2f51dec074a87fab5d7841e15255d"
+    },
+    {
+      "task": "ScikitImage_gen06",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "e929902a025b32b4dcbbbd37c7526e2f6fd46cd7c8ac79f7131f15a50a3193e9"
+    }
+  ],
+  "GitHub参考版": [
+    {
+      "task": "Eparse_gtb01",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "fcae0bbb19ae9246699210048ee5360ab77617ef3ca0d7b09b884ab9b7c6da11"
+    },
+    {
+      "task": "Eparse_gtb02",
+      "score": 0.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "36f67d43227b35c8a90dd887849fcc4cfb877003a7ea9676eec426e817db804f"
+    },
+    {
+      "task": "MoviePy_gen01",
+      "score": 1.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "a5dfa583a4394ca3dd8e89a13d96bd350a25b84e38ef2a53c5437486ed3a88ee"
+    },
+    {
+      "task": "NeuroKit_gtb01",
+      "score": null,
+      "apiRequests": 6,
+      "trialStatus": "error",
+      "gradingStatus": null,
+      "summarySha256": "2f43139edcf87c21c26fbb0f884bb4f426a9a809310e006b90a4bbfd5bc29d1a"
+    },
+    {
+      "task": "NeuroKit_gtb02",
+      "score": 0.0,
+      "apiRequests": 3,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "769151da0372366c3289fa4acd585039a26eea137e7d41a7d5df1cafa9709868"
+    },
+    {
+      "task": "NeuroKit_gtb03",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "fdb725af39d60743f4d36ba720748700d4d57200a151479145737dae7038de4a"
+    },
+    {
+      "task": "Pillow_gen01",
+      "score": 1.0,
+      "apiRequests": 3,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "cc3b48b2fe49d81d6882003b99af5534764d8453ffe18cffab513c71df4b9860"
+    },
+    {
+      "task": "PyPDF2_gtb03",
+      "score": 1.0,
+      "apiRequests": 6,
+      "trialStatus": "completed",
+      "gradingStatus": "passed",
+      "summarySha256": "598c9728411f9b1323163150b6fc7ceb0fd235792e1e97ed8fcdca564c4da18e"
+    },
+    {
+      "task": "ScikitImage_gen05",
+      "score": null,
+      "apiRequests": 4,
+      "trialStatus": "error",
+      "gradingStatus": "input_error",
+      "summarySha256": "ea93221326c6e4bdc3fd117693af29cb895a03f1e0b9bb2ed2b60b7bbcbb471d"
+    },
+    {
+      "task": "ScikitImage_gen06",
+      "score": 0.0,
+      "apiRequests": 5,
+      "trialStatus": "completed",
+      "gradingStatus": "submission_failed",
+      "summarySha256": "98798c30217b9f13bd42b8541f2a77a67b2af67379068c8f324553aa730d025a"
+    }
+  ]
+}

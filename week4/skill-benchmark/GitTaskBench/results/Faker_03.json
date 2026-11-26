@@ -1,0 +1,70 @@
+{
+  "caseId": "Faker_03",
+  "expectedOutput": "fake_text.txt",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "Faker_03",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-faker-03",
+        "input": {
+          "from": "case",
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "gtb-faker-text",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-faker-03",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "apiTrials": {
+    "baseline": [
+      {
+        "trial": "no-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 5
+      }
+    ],
+    "withSkill": [
+      {
+        "trial": "with-skill-1",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3
+      },
+      {
+        "trial": "with-skill-2",
+        "score": 1.0,
+        "status": "passed",
+        "apiRequests": 3
+      }
+    ]
+  },
+  "platformReplay": {
+    "nativeScore": 1.0,
+    "runId": "542cfb2b-aa11-4da4-8bb2-82497e4bb338",
+    "inputMatchesApiExperiment": true,
+    "inputSha256": {
+      "Faker_03_input.txt": "e6970493a90d65ed5f58e66bb3fff52beffcb51aea9d32ac400f57bd1121d8b7"
+    },
+    "artifactSha256": "93d9f820146488e67fd35504e455c33bc483a3caa1f87bea5a4ee70a7ba8835a",
+    "graderSha256": "446c8d73b8f0e603e722d7759294b9301366f20483f64947f890b4c2ccad2e7e"
+  }
+}

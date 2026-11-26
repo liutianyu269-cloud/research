@@ -1,0 +1,107 @@
+{
+  "id": "f8606fea-7127-4386-91b1-d33603709916",
+  "status": "passed",
+  "directory": "work/skill-lab-v2/platform/runs/f8606fea-7127-4386-91b1-d33603709916",
+  "workflow": {
+    "dataset": "gittaskbench",
+    "caseId": "PyPDF2_01",
+    "nodes": [
+      {
+        "id": "node-inspect",
+        "skillId": "gtb-inspect-pdf-pages",
+        "input": {
+          "from": "case",
+          "nodeId": null,
+          "port": "fixtures"
+        }
+      },
+      {
+        "id": "node-process",
+        "skillId": "pypdf-page-operations",
+        "input": {
+          "from": "node",
+          "nodeId": "node-inspect",
+          "port": "artifact"
+        }
+      },
+      {
+        "id": "node-validate",
+        "skillId": "gtb-verify-pypdf2-01",
+        "input": {
+          "from": "node",
+          "nodeId": "node-process",
+          "port": "artifact"
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-pdf-pages",
+      "status": "passed",
+      "elapsedMs": 314,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-inspect-pdf-pages",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/gittaskbench/inputs/PyPDF2_01",
+      "outputType": "PDF",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/f8606fea-7127-4386-91b1-d33603709916/node-inspect/output",
+      "artifacts": [
+        {
+          "path": "input-inspection.json",
+          "bytes": 231,
+          "sha256": "563d9f45beceae8779e6c51c499c0fb81bbfca9056b703400bbb2cb79646d0aa"
+        },
+        {
+          "path": "PyPDF2_01_input.pdf",
+          "bytes": 30255,
+          "sha256": "901409e8e3d504a07ca1793e0b05d4b58e333760026dc1996d27edee9365a513"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-process",
+      "skillId": "pypdf-page-operations",
+      "status": "passed",
+      "elapsedMs": 446,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/pypdf-page-operations",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/f8606fea-7127-4386-91b1-d33603709916/node-inspect/output",
+      "outputType": "UTF-8 TXT",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/f8606fea-7127-4386-91b1-d33603709916/node-process/output",
+      "artifacts": [
+        {
+          "path": "document.txt",
+          "bytes": 7023,
+          "sha256": "5d06fb1557d8d562cb7f39124806834aafeaf3b41e0d45fbb10c6757d144024e"
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-pypdf2-01",
+      "status": "passed",
+      "elapsedMs": 231,
+      "flowId": "@com.horsecoder.skilllab.liutianyu/v2/gtb-verify-pypdf2-01",
+      "generation": 1,
+      "inputDirectory": "work/skill-lab-v2/platform/runs/f8606fea-7127-4386-91b1-d33603709916/node-process/output",
+      "outputType": "UTF-8 TXT",
+      "outputDirectory": "work/skill-lab-v2/platform/runs/f8606fea-7127-4386-91b1-d33603709916/node-validate/output",
+      "artifacts": [
+        {
+          "path": "artifact-validation.json",
+          "bytes": 29,
+          "sha256": "2f1dfa96507ef2738214580451051495bb3987f57306455e77d0dd69ea2e1c56"
+        },
+        {
+          "path": "document.txt",
+          "bytes": 7023,
+          "sha256": "5d06fb1557d8d562cb7f39124806834aafeaf3b41e0d45fbb10c6757d144024e"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

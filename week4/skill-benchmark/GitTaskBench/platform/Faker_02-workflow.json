@@ -1,0 +1,32 @@
+{
+  "dataset": "gittaskbench",
+  "caseId": "Faker_02",
+  "nodes": [
+    {
+      "id": "node-inspect",
+      "skillId": "gtb-inspect-faker-schema",
+      "input": {
+        "from": "case",
+        "port": "fixtures"
+      }
+    },
+    {
+      "id": "node-process",
+      "skillId": "faker-tabular-fixtures",
+      "input": {
+        "from": "node",
+        "nodeId": "node-inspect",
+        "port": "artifact"
+      }
+    },
+    {
+      "id": "node-validate",
+      "skillId": "gtb-verify-faker-csv",
+      "input": {
+        "from": "node",
+        "nodeId": "node-process",
+        "port": "artifact"
+      }
+    }
+  ]
+}
