@@ -2,6 +2,14 @@
 
 本分支归档 GitTaskBench 的 14 道正式题和 SkillGenBench 原 10 题的研究对照。试次使用 DeepSeek Flash＋DSH。两个基准各自保留原题面与评分口径。
 
+## 课程运行仓库
+
+- 我的后端项目 [rsi-data-spring-boot](https://github.com/liutianyu269-cloud/rsi-data-spring-boot)
+- 我的前端项目 [rsi-data-platform](https://github.com/liutianyu269-cloud/rsi-data-platform)
+- 我的前端编排框架 [rsi-data-visual](https://github.com/liutianyu269-cloud/rsi-data-visual)
+
+三个仓库的 README 包含启动顺序和 PDF 元数据演示。后端目录仅包含上述 24 道已分析题的流程和输入清单。后端使用课程版 RSI Flow。
+
 - [逐题报告与实验结果](report.md)列出输入、产物、失败原因、请求次数和评分。
 - [GitTaskBench](GitTaskBench)提供 14 题 API 实测 Skill、请求数、工作流及节点运行记录。14 条平台产物经原评分器复评均通过。在线实验记录无 Skill 9/14 和有 Skill 27/28，其中 5 题从请求达限到至少一次通过。
 - [SkillGenBench](SkillGenBench)保存原 10 题以及 4 个受过 API 测试的策略快照。V1 只有 6 道实际请求过 API。论文版与 GitHub 参考版各通过 3 道，PDF 元数据是原基线有效的 0→1。
