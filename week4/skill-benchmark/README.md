@@ -8,7 +8,7 @@
 - 我的前端项目 [rsi-data-platform](https://github.com/liutianyu269-cloud/rsi-data-platform)
 - 我的前端编排框架 [rsi-data-visual](https://github.com/liutianyu269-cloud/rsi-data-visual)
 
-三个仓库的 README 包含启动顺序和验证方法。当前提交的运行版收录 7 条 GitTaskBench 和 3 条 SkillGenBench 案例。每题的人工编排说明、结果和原因分析见[当前提交的 Case 1–10](case1-10-analysis.md)。后端使用课程版 RSI Flow。
+三个仓库的 README 包含启动顺序和验证方法。当前提交的运行版收录 7 条 GitTaskBench 和 3 条 SkillGenBench 案例。每题的人工编排说明、结果和原因分析见[当前提交的 Case 1–10](https://github.com/liutianyu269-cloud/rsi-data-workbench/blob/rsi-data-spring-boot/CASES.md)。后端使用课程版 RSI Flow。
 
 - [逐题报告与实验结果](report.md)列出输入、产物、失败原因、请求次数和评分。
 - [GitTaskBench](GitTaskBench)提供 14 题 API 实测 Skill、请求数、工作流及节点运行记录。14 条平台产物经原评分器复评均通过。在线实验记录无 Skill 9/14 和有 Skill 27/28，其中 5 题从请求达限到至少一次通过。
