@@ -8,7 +8,7 @@
 - 我的前端项目 [rsi-data-platform](https://github.com/liutianyu269-cloud/rsi-data-platform)
 - 我的前端编排框架 [rsi-data-visual](https://github.com/liutianyu269-cloud/rsi-data-visual)
 
-三个仓库的 README 包含启动顺序和 PDF 元数据演示。后端目录仅包含上述 24 道已分析题的流程和输入清单。后端使用课程版 RSI Flow。
+三个仓库的 README 包含启动顺序和验证方法。当前提交的运行版收录 7 条 GitTaskBench 和 3 条 SkillGenBench 案例。每题的人工编排说明、结果和原因分析见[当前提交的 Case 1–10](case1-10-analysis.md)。后端使用课程版 RSI Flow。
 
 - [逐题报告与实验结果](report.md)列出输入、产物、失败原因、请求次数和评分。
 - [GitTaskBench](GitTaskBench)提供 14 题 API 实测 Skill、请求数、工作流及节点运行记录。14 条平台产物经原评分器复评均通过。在线实验记录无 Skill 9/14 和有 Skill 27/28，其中 5 题从请求达限到至少一次通过。
@@ -17,7 +17,7 @@
 
 ## 对照课程示例
 
-已核对课程后端 `dev_examples` 提交 `90c9a04`。课程样例用 `type: flow` 子节点引用原子流程 ID，由 `routes` 决定推进顺序。当前实现把这 24 条选题流程独立注册到 rsi-flow，按组合 ID 一次调度。Java 8 实跑 24/24 条，72/72 个 Skill 节点成功。24 个预期产物的 SHA-256 均与上轮已评分产物一致。详见[原生编排与复现](platform/native-orchestration.md)。 [课程后端示例](https://github.com/ymxiong/rsi-skill-spring-boot/tree/90c9a0464098c349cb8d021b604a1ca8b2496d83/core-flow/src/main/resources/flow)
+已核对课程后端 `dev_examples` 提交 `90c9a04`。课程样例用 `type: flow` 子节点引用原子流程 ID，由 `routes` 决定推进顺序。原 4.2 实验把这 24 条选题流程独立注册到 rsi-flow，按组合 ID 一次调度。Java 8 实跑 24/24 条，72/72 个 Skill 节点成功。24 个预期产物的 SHA-256 均与上轮已评分产物一致。详见[原生编排与复现](platform/native-orchestration.md)。 [课程后端示例](https://github.com/ymxiong/rsi-skill-spring-boot/tree/90c9a0464098c349cb8d021b604a1ca8b2496d83/core-flow/src/main/resources/flow)
 
 ## 复查现有记录
 
